@@ -1,0 +1,13 @@
+# Python
+*.pyc
+__pycache__/
+
+# Django
+db.sqlite3
+/media
+/staticfiles
+.env
+
+# Virtual environment
+budget_app/
+
