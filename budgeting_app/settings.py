@@ -76,10 +76,15 @@ WSGI_APPLICATION = 'budgeting_app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'budgeting_app',  # the name of your database
+        'USER': 'root',           # your MySQL username
+        'PASSWORD': 'sono1212',   # your MySQL password
+        'HOST': 'localhost',       # or your MySQL server address
+        'PORT': '3306',            # default MySQL port
     }
 }
+
 
 
 # Password validation
