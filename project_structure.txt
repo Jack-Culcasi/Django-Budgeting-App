@@ -1,0 +1,24 @@
+.
+├── budgeting_app
+│   ├── asgi.py
+│   ├── __init__.py
+│   ├── __pycache__
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── db.sql
+├── db.sqlite3
+├── home
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── migrations
+│   ├── models.py
+│   ├── __pycache__
+│   ├── templates
+│   ├── tests.py
+│   └── views.py
+├── manage.py
+└── project_structure.txt
+
+6 directories, 15 files
