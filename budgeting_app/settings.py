@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -105,6 +107,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Redirect URLs after login and logout
+LOGIN_REDIRECT_URL = 'home'  
+LOGOUT_REDIRECT_URL = 'login'  
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -120,6 +125,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'home/static'),  # This line should be correct
+]
 
 STATIC_URL = 'static/'
 
