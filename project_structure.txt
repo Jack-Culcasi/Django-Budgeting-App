@@ -15,10 +15,11 @@
 │   ├── migrations
 │   ├── models.py
 │   ├── __pycache__
+│   ├── static
 │   ├── templates
 │   ├── tests.py
 │   └── views.py
 ├── manage.py
 └── project_structure.txt
 
-6 directories, 15 files
+7 directories, 15 files
