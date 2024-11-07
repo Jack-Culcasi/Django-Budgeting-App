@@ -1,4 +1,39 @@
 {% extends "index.html" %}
 {% block start %}
-<h1>E chisso</h1>
+<div class="flex justify-center space-x-10">
+
+    <div class="stats shadow">
+      <div class="stat">
+        <div class="stat-title">Net Worth</div>
+        <div class="stat-value">{{ net_worth.net_worth }}</div>
+        <div class="stat-desc">21% more than last month</div>
+      </div>
+    </div>
+
+    <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Investments</div>
+          <div class="stat-value">89,400</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>
+
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Pension</div>
+          <div class="stat-value">89,400</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>
+
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">PAC</div>
+          <div class="stat-value">89,400</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>
+
+  </div>
+  
 {% endblock %}
