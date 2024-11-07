@@ -12,7 +12,7 @@
   <!-- Link to external JavaScript file -->
   <script src="{% static 'js/theme-toggle.js' %}"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-base-100">
 
 <!-- Navbar -->
 <div class="navbar bg-base-100">
@@ -40,7 +40,7 @@
       </label>
       <ul
         tabindex="0"
-        class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+        class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50">
         <li><a href="#option1">Settings</a></li>
         <li>
           <form action="{% url 'logout' %}" method="POST">
