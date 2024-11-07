@@ -17,7 +17,7 @@
 <!-- Navbar -->
 <div class="navbar bg-base-100">
   <div class="flex-1">
-    <a class="btn btn-ghost text-xl">Account Name</a>
+    <a class="btn btn-ghost text-xl">{{ user.username|capfirst }}</a>
   </div>
   <div class="flex-none">
     <!-- Dropdown -->
@@ -25,7 +25,11 @@
       <!-- Theme Toggle Icon (moon for dark, sun for light) -->
       <i id="theme-toggle" class="fas fa-moon text-2xl cursor-pointer"></i>
       <label tabindex="0" class="btn btn-ghost">
-        Profile
+        <div class="avatar placeholder">
+          <div class="bg-neutral text-neutral-content w-9 rounded-full">
+            <span class="text-xs">{{ user.username|slice:":1"|capfirst }}</span>
+          </div>
+        </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -67,8 +71,8 @@
         <label for="my-drawer-2" aria-label="close sidebar" class="drawer-overlay"></label>
         <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
           <!-- Sidebar content here -->
-          <li><a>Sidebar Item 1</a></li>
-          <li><a>Sidebar Item 2</a></li>
+          <li><a href="{% url 'home' %}">Overview</a></li>
+          <li><a href="{% url 'payday' %}">It's Payday!</a></li>
         </ul>
       </div>
     </div>
