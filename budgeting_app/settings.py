@@ -109,7 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Redirect URLs after login and logout
 LOGIN_REDIRECT_URL = 'home'  
-LOGOUT_REDIRECT_URL = 'login'  
+LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
