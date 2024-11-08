@@ -26,5 +26,6 @@ urlpatterns = [
     path('signup/', auth_views.LoginView.as_view(template_name='signup.html'), name='signup'),
     path('', views.home, name='home'),
     path('home/', views.home, name='home'),
-    path('payday/', views.payday, name='payday')
+    path('payday/', views.payday, name='payday'),
+    path('expenses/<int:payday_id>/', views.expenses, name='expenses')
 ]
