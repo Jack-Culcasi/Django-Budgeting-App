@@ -1,0 +1,24 @@
+{% extends "index.html" %}
+{% block start %}
+<div class="flex h-screen justify-center items-center space-x-10">
+
+    <!-- Input form on the left -->
+    <div class="flex flex-col items-center space-y-4">
+        <h2>Enter Transaction</h2>
+        <form id="transaction-form" class="w-full max-w-xs">
+            {% csrf_token %}
+            <input type="number" name="amount" id="amount" placeholder="Amount" class="input input-bordered w-full" required />
+            <button type="submit" class="btn btn-primary mt-2">Add Transaction</button>
+        </form>
+    </div>
+
+    <!-- Expense list on the right -->
+    <div class="flex flex-col items-center space-y-2">
+        <h2>Expenses</h2>
+        <div id="expense-list" class="w-full max-w-xs bg-gray-100 p-4 rounded-lg shadow">
+            <!-- List of expenses will be dynamically added here -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}
