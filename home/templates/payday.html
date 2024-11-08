@@ -1,29 +1,30 @@
 {% extends "index.html" %}
 {% block start %}
 
-<div class="flex items-center justify-center">
+<form method="post" action="{% url 'payday' %}">
+  {% csrf_token %}
+  <div class="flex items-center justify-center">
+      <div class="flex flex-col">
+          <h1 class="mb-4">Hooray!</h1>
 
-    <div class="flex flex-col items-center">
+          <label class="form-control w-full max-w-xs">
+              <div class="label">
+                <span class="label-text">How much did you earn?</span>
+              </div>
+              <input type="number" name="amount" placeholder="Currency" class="input input-bordered w-full max-w-xs" />
+          </label>
 
-        <h1 class="mb-4">Great!</h1>
-
-        <label class="form-control w-full max-w-xs">
+          <label class="form-control w-full max-w-xs">
             <div class="label">
-              <span class="label-text">How much did you earn ?</span>
+              <span class="label-text">When?</span>
             </div>
-            <input type="text" placeholder="Currency" class="input input-bordered w-full max-w-xs" />
-        </label>
-        
-        <label class="form-control w-full max-w-xs">
-            <div class="label">
-              <span class="label-text">When ?</span>
-            </div>
-            <input type="text" placeholder="Actual date" class="input input-bordered w-full max-w-xs" />
-        </label>
+            <input type="date" name="date" class="input input-bordered w-full max-w-xs" value="{{ today_date }}" />
+          </label>
 
-    </div>
-        
-
-</div>
+          <!-- Submit button -->
+          <button type="submit" class="btn btn-primary mt-4">Let's go</button>
+      </div>
+  </div>
+</form>
 
 {% endblock %}
