@@ -5,10 +5,10 @@
     <div class="flex flex-col items-center w-1/2">
         <h1 class="mb-4">Add a Transaction</h1>
 
-        <form id="transaction-form" method="POST">
+        <form id="transaction-form" method="POST" action="{% url 'add_transaction' %}">
             {% csrf_token %}
             <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="Amount" required>
-            
+            <input type="hidden" name="monthly_expense_id" id="monthly_expense_id" value="{{ monthly_expense_id }}">
             <!-- <select name="category" id="category" class="input input-bordered w-full mb-2">
                 <option value="" disabled selected>Select a Category</option>
                 {% for category in categories %}
@@ -38,10 +38,12 @@
         event.preventDefault();  // Prevent default form submission
 
         const amount = document.getElementById('amount').value;
+        const monthly_expense_id = document.getElementById('monthly_expense_id').value;        
         // const category = document.getElementById('category').value;
 
         const formData = new FormData();
         formData.append('amount', amount);
+        formData.append('monthly_expense_id', monthly_expense_id);
         // formData.append('category', category);
         formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
@@ -56,6 +58,8 @@
                 const transactionDiv = document.createElement('div');
                 transactionDiv.classList.add('transaction-item', 'mb-2');
                 // transactionDiv.innerHTML = `<p>${data.category_name}: $${data.amount}</p>`;
+                transactionDiv.innerHTML = `<p>$${data.amount}</p>`;
+
                 document.getElementById('transactions-container').appendChild(transactionDiv);
                 
                 // Clear the input fields
