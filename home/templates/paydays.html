@@ -7,20 +7,22 @@
       <thead>
         <tr>
           <th></th>
-          <th>Name</th>
-          <th>Job</th>
-          <th>Favorite Color</th>
+          <th>Amount</th>
+          <th>Note</th>
         </tr>
       </thead>
+      {% for payday in paydays %}
       <tbody>
         <!-- row 2 -->
         <tr class="hover">
-          <th>2</th>
-          <td>Hart Hagerty</td>
-          <td>Desktop Support Technician</td>
-          <td>Purple</td>
+          <th>
+            <a  href="{% url 'monthly_expenses' %}" class="btn btn-outline">{{ payday.payday_date|date:"M. j, Y" }}</a>
+          </th>
+          <td>{{ payday.amount }}</td>
+          <td>{{ payday.note }}</td>
         </tr>
       </tbody>
+      {% endfor %}
     </table>
   </div>
 
