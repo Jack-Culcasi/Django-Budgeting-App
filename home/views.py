@@ -2,8 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse
-from datetime import datetime
-from .models import NetWorth, Payday, Category, Transaction
+from datetime import datetime, timedelta
+from .models import NetWorth, Payday, Category, Transaction, MonthlyExpenses
 
 @login_required
 def home(request):    
@@ -21,11 +21,23 @@ def home(request):
 
 @login_required
 def payday(request):
+    today_date = timezone.now().date().strftime('%Y-%m-%d')
+    #MonthlyExpenses.objects.all().delete()
+    #print(monthly)
+    #Payday.objects.all().delete()
+    #print('paydays', Payday.objects.all())
+    # Check if is first payday ever, if it is, prompt start date field
+    try:
+        last_two_paydays = Payday.objects.all().order_by('-payday_date')[:2]
+            
+    except IndexError: # Not enough paydays to create MonthlyExpenses
+        last_two_paydays = None
 
     if request.method == 'POST':
         # Get the form data
         amount = request.POST.get('amount')
         payday_date = request.POST.get('date')
+        start_date = request.POST.get('start_date', None)
         note = request.POST.get('note', None)
         payday_date = timezone.make_aware(datetime.strptime(payday_date, '%Y-%m-%d'))        
         # Create the Payday object
@@ -35,20 +47,37 @@ def payday(request):
             amount=amount,
             note=note
         )
-        return redirect('expenses', payday_id=payday.id)
-
-    today_date = timezone.now().date().strftime('%Y-%m-%d')  # Get the current date
+        # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
+        if len(last_two_paydays) < 2:
+            monthly_expense = MonthlyExpenses.objects.create(
+            payday=payday,
+            start_date=start_date,
+            end_date=payday_date - timedelta(days=1)
+            )
+        else:
+            last_two_paydays = Payday.objects.all().order_by('-payday_date')[:2]
+            # Create the MonthlyExpenses object for the previous month, 
+            # the start date is related to the payday date of the previous month while the end date is the last payday date minus one day.
+            # If you are paid every 1st of the month you want your monthly expenses be calculated from the 1st to the 31st.
+            monthly_expense = MonthlyExpenses.objects.create(
+                payday=last_two_paydays[1],
+                start_date=last_two_paydays[1].payday_date,
+                end_date=payday_date - timedelta(days=1)
+                )
+    
+        return redirect('expenses', payday_id=payday.id, monthly_expense_id=monthly_expense.id)
 
     context = {
-        'today_date': today_date
+        'today_date': today_date,
+        'last_two_paydays': last_two_paydays,
     }
 
     return render(request, 'payday.html', context)
 
 @login_required
-def expenses(request, payday_id=None):
-    # Redirect to payday if accessed directly without a payday_id
-    if payday_id is None:
+def expenses(request, payday_id=None, monthly_expense_id=None):
+    # Redirect to payday if accessed directly without a payday_id or monthly_expense_id
+    if payday_id is None or monthly_expense_id is None:
         return redirect('payday')
 
     try:
@@ -63,6 +92,7 @@ def expenses(request, payday_id=None):
         'payday': payday,
         'categories': categories,
         'transactions': transactions,
+        'monthly_expense_id': monthly_expense_id,
     }
     return render(request, 'expenses.html', context)
 
@@ -70,13 +100,16 @@ def expenses(request, payday_id=None):
 def add_transaction(request):
     if request.method == 'POST':
         amount = request.POST.get('amount')
+        monthly_expense_id = request.POST.get('monthly_expense_id')
         #category_id = request.POST.get('category', None)
         note = request.POST.get('note', '')  # Default to an empty string if no note is provided
+        monthly_expenses = MonthlyExpenses.objects.get(id=monthly_expense_id)
 
         try:
             #category = Category.objects.get(id=category_id)
             transaction = Transaction.objects.create(
                 user=request.user,
+                monthly_expenses=monthly_expenses,
                 amount=amount,
                 #category=category,
                 note=note
@@ -96,4 +129,21 @@ def add_transaction(request):
 
 @login_required
 def paydays(request):
-    return render(request, 'paydays.html')
+    paydays = Payday.objects.all()
+
+    context = {
+        'paydays': paydays
+    }
+
+    return render(request, 'paydays.html', context)
+
+@login_required
+def monthly_expenses(request):
+    transactions = Transaction.objects.all()
+    print(transactions)
+
+    context = {
+        'transactions' : transactions
+    }
+
+    return render(request, 'monthly_expenses.html', context)
