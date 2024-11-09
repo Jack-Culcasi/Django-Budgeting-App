@@ -1,24 +1,73 @@
 {% extends "index.html" %}
 {% block start %}
-<div class="flex h-screen justify-center items-center space-x-10">
+<div class="flex items-center justify-between">
+    <!-- Transaction Input Form -->
+    <div class="flex flex-col items-center w-1/2">
+        <h1 class="mb-4">Add a Transaction</h1>
 
-    <!-- Input form on the left -->
-    <div class="flex flex-col items-center space-y-4">
-        <h2>Enter Transaction</h2>
-        <form id="transaction-form" class="w-full max-w-xs">
+        <form id="transaction-form" method="POST">
             {% csrf_token %}
-            <input type="number" name="amount" id="amount" placeholder="Amount" class="input input-bordered w-full" required />
-            <button type="submit" class="btn btn-primary mt-2">Add Transaction</button>
+            <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="Amount" required>
+            
+            <!-- <select name="category" id="category" class="input input-bordered w-full mb-2">
+                <option value="" disabled selected>Select a Category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select> -->
+
+            <button type="submit" class="btn btn-primary w-full">Add Transaction</button>
         </form>
     </div>
 
-    <!-- Expense list on the right -->
-    <div class="flex flex-col items-center space-y-2">
-        <h2>Expenses</h2>
-        <div id="expense-list" class="w-full max-w-xs bg-gray-100 p-4 rounded-lg shadow">
-            <!-- List of expenses will be dynamically added here -->
+    <!-- Display Transactions -->
+    <div class="w-1/2">
+        <h2 class="mb-4">Transactions</h2>
+        <div id="transactions-container">
+            {% for transaction in transactions %}
+                <div class="transaction-item mb-2">
+                    <p>{{ transaction.category.name }}: ${{ transaction.amount }}</p>
+                </div>
+            {% endfor %}
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('transaction-form').addEventListener('submit', function(event) {
+        event.preventDefault();  // Prevent default form submission
+
+        const amount = document.getElementById('amount').value;
+        // const category = document.getElementById('category').value;
+
+        const formData = new FormData();
+        formData.append('amount', amount);
+        // formData.append('category', category);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch('{% url "add_transaction" %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Append the new transaction to the list without reloading the page
+                const transactionDiv = document.createElement('div');
+                transactionDiv.classList.add('transaction-item', 'mb-2');
+                // transactionDiv.innerHTML = `<p>${data.category_name}: $${data.amount}</p>`;
+                document.getElementById('transactions-container').appendChild(transactionDiv);
+                
+                // Clear the input fields
+                document.getElementById('amount').value = '';
+                // document.getElementById('category').value = '';
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+
 
 {% endblock %}
