@@ -19,15 +19,6 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-    
-class Transaction(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
-    note = models.CharField(max_length=255, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.category.name} - {self.amount} by {self.user.username}"
 
 class MonthlyExpenses(models.Model):
     payday = models.ForeignKey(Payday, on_delete=models.CASCADE, related_name='monthly_expenses')
@@ -44,6 +35,16 @@ class MonthlyExpenses(models.Model):
 
     def __str__(self):
         return f'Monthly Expenses for {self.payday}'
+    
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    monthly_expenses = models.ForeignKey(MonthlyExpenses, on_delete=models.CASCADE, null=True, blank=True)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    note = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.category.name} - {self.amount} by {self.user.username}"
 
 
 class Broker(models.Model):
