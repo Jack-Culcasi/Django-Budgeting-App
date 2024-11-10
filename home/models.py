@@ -1,6 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class UserPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  
+    currency_symbol = models.CharField(max_length=5, default='£')  
+
+    def __str__(self):
+        return f"Preferences: Currency {self.currency_symbol}"
+
 class Payday(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='paydays')
     payday_date = models.DateTimeField()
@@ -14,6 +21,7 @@ class Payday(models.Model):
         return f'Payday for {self.user.username} on {self.payday_date}'
     
 class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, unique=True)
     note = models.CharField(max_length=255, null=True, blank=True)
 
@@ -38,13 +46,23 @@ class MonthlyExpenses(models.Model):
     
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     monthly_expenses = models.ForeignKey(MonthlyExpenses, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     note = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"{self.category.name} - {self.amount} by {self.user.username}"
+    
+class FixedCosts(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  
+    monthly_expenses = models.ForeignKey(MonthlyExpenses, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=255)  
+    amount = models.DecimalField(max_digits=15, decimal_places=2)  
+    note = models.CharField(max_length=255, null=True, blank=True)  
+
+    def __str__(self):
+        return f"{self.name} ({self.amount}) for {self.monthly_expenses.payday.payday_date('%B %Y')}"
 
 
 class Broker(models.Model):
