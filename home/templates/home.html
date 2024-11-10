@@ -38,7 +38,7 @@
 
   <h1>Transactions</h1>
   {% for transaction in transactions %}
-  <p>{{ transaction.amount }}</p>
+  <p>{{ transaction.amount }} {{ transaction.category.name }}</p>
   {% endfor %}
 
   <h1>Paydays</h1>
