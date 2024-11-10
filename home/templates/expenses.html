@@ -7,7 +7,7 @@
 
         <form id="transaction-form" method="POST" action="{% url 'add_transaction' %}">
             {% csrf_token %}
-            <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="Amount" required>
+            <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="Amount" step="0.01" required>
             <input type="hidden" name="monthly_expense_id" id="monthly_expense_id" value="{{ monthly_expense_id }}">
             <!-- <select name="category" id="category" class="input input-bordered w-full mb-2">
                 <option value="" disabled selected>Select a Category</option>
@@ -26,7 +26,7 @@
         <div id="transactions-container">
             {% for transaction in transactions %}
                 <div class="transaction-item mb-2">
-                    <p>{{ transaction.category.name }}: ${{ transaction.amount }}</p>
+                    <p>{{ transaction.amount|floatformat:2 }}</p>
                 </div>
             {% endfor %}
         </div>
@@ -58,7 +58,7 @@
                 const transactionDiv = document.createElement('div');
                 transactionDiv.classList.add('transaction-item', 'mb-2');
                 // transactionDiv.innerHTML = `<p>${data.category_name}: $${data.amount}</p>`;
-                transactionDiv.innerHTML = `<p>$${data.amount}</p>`;
+                transactionDiv.innerHTML = `<p>${data.amount}</p>`;
 
                 document.getElementById('transactions-container').appendChild(transactionDiv);
                 
