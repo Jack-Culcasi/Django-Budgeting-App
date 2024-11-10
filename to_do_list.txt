@@ -1,0 +1,3 @@
+- Category implementation
+- Note tooltip to be added
+- Fixed costst to be added

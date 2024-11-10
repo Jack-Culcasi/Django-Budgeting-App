@@ -1,0 +1,61 @@
+{% if fixed_costs %}
+<p>yes</p>
+<table class="table">
+    <thead>
+      <tr>
+        {% for fixed_cost in fixed_costs %}
+        <th>{{ fixed_cost.name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    {% for fixed_cost in fixed_costs %}
+    <tbody>
+      <tr class="hover">
+        <td>{{ fixed_cost.amount }}</td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+  {% else %}
+  <table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="hover">
+            <td>
+                <input type="text" placeholder="Rent" class="input w-full max-w-xs" />
+            </td>
+            <td>
+                <input type="number" placeholder="1000" class="input w-full max-w-xs" />
+            </td>
+        </tr>
+    </tbody>
+  </table>
+  {% endif %}
+
+  <br>
+
+  <div class="overflow-x-auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Amount</th>
+          {% for category in categories %}
+          <th></th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>{{ user.userpreferences.currency_symbol }} {{ transaction.amount|floatformat:2 }}</th>
+          {% for category in categories %}
+          <td>{{ category.name }}</td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
