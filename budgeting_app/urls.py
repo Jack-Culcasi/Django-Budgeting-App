@@ -30,5 +30,5 @@ urlpatterns = [
     path('expenses/<int:payday_id>/<int:monthly_expense_id>/', views.expenses, name='expenses'),
     path('add_transaction/', views.add_transaction, name='add_transaction'),
     path('paydays/', views.paydays, name='paydays'),
-    path('monthly_expenses/', views.monthly_expenses, name='monthly_expenses')
+    path('monthly_expenses/<int:payday_id>/', views.monthly_expenses, name='monthly_expenses')
 ]
