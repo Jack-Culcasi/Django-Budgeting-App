@@ -11,14 +11,14 @@
               <div class="label">
                 <span class="label-text">How much did you earn?</span>
               </div>
-              <input type="number" name="amount" placeholder="Currency" class="input input-bordered w-full max-w-xs" />
+              <input type="number" name="amount" placeholder="Currency" class="input input-bordered w-full max-w-xs" required />
           </label>
 
           <label class="form-control w-full max-w-xs">
             <div class="label">
               <span class="label-text">When?</span>
             </div>
-            <input type="date" name="date" class="input input-bordered w-full max-w-xs" value="{{ today_date }}" />
+            <input type="date" name="date" class="input input-bordered w-full max-w-xs" value="{{ today_date }}" required />
           </label>
 
           {% if not last_two_paydays %}
@@ -43,7 +43,7 @@
             <div class="label">
               <span class="label-text">Insert a start date for the monthly expenses</span>
             </div>
-            <input type="date" name="start_date" class="input input-bordered w-full max-w-xs" placeholder="{{ today_date }}" />
+            <input type="date" name="start_date" class="input input-bordered w-full max-w-xs" placeholder="{{ today_date }}" required />
           </label>
                         
           {% endif %}
