@@ -1,5 +1,13 @@
 {% extends "index.html" %}
 {% block start %}
+
+<ul class="steps">
+    <li class="step step-primary">Payday</li>
+    <li class="step step-primary">Variable Costs</li>
+    <li class="step">Fixed Costs</li>
+    <li class="step">Review</li>
+</ul>
+<br>
 <div class="flex items-center justify-between">
     <!-- Transaction Input Form -->
     <div class="flex flex-col items-center w-1/2">
@@ -7,71 +15,87 @@
 
         <form id="transaction-form" method="POST" action="{% url 'add_transaction' %}">
             {% csrf_token %}
-            <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="Amount" step="0.01" required>
+            <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" step="0.01" required>
             <input type="hidden" name="monthly_expense_id" id="monthly_expense_id" value="{{ monthly_expense_id }}">
-            <!-- <select name="category" id="category" class="input input-bordered w-full mb-2">
-                <option value="" disabled selected>Select a Category</option>
-                {% for category in categories %}
-                    <option value="{{ category.id }}">{{ category.name }}</option>
-                {% endfor %}
-            </select> -->
-
+            {% for category in categories %}
+              <div class="form-control">
+                <label class="label cursor-pointer">
+                  <span class="label-text">{{ category.name }}</span>
+                  <input type="checkbox" class="checkbox" name="categories" value="{{ category.id }}" />
+                </label>
+              </div>
+            {% endfor %}
             <button type="submit" class="btn btn-primary w-full">Add Transaction</button>
         </form>
     </div>
 
     <!-- Display Transactions -->
     <div class="w-1/2">
-        <h2 class="mb-4">Transactions</h2>
         <div id="transactions-container">
-            {% for transaction in transactions %}
-                <div class="transaction-item mb-2">
-                    <p>{{ transaction.amount|floatformat:2 }}</p>
-                </div>
-            {% endfor %}
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Amount</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaction-table-body">
+                        {% for transaction in transactions %}
+                        <tr>
+                            <td>{{ user.userpreferences.currency_symbol }} {{ transaction.amount|floatformat:2 }}</td>
+                            <td>{{ transaction.category.name }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
     document.getElementById('transaction-form').addEventListener('submit', function(event) {
-        event.preventDefault();  // Prevent default form submission
+    event.preventDefault();  // Prevent default form submission
 
-        const amount = document.getElementById('amount').value;
-        const monthly_expense_id = document.getElementById('monthly_expense_id').value;        
-        // const category = document.getElementById('category').value;
+    const amount = document.getElementById('amount').value;
+    const monthly_expense_id = document.getElementById('monthly_expense_id').value;        
+    // const category = document.getElementById('category').value;
 
-        const formData = new FormData();
-        formData.append('amount', amount);
-        formData.append('monthly_expense_id', monthly_expense_id);
-        // formData.append('category', category);
-        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    const formData = new FormData();
+    formData.append('amount', amount);
+    formData.append('monthly_expense_id', monthly_expense_id);
+    // formData.append('category', category);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
-        fetch('{% url "add_transaction" %}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Append the new transaction to the list without reloading the page
-                const transactionDiv = document.createElement('div');
-                transactionDiv.classList.add('transaction-item', 'mb-2');
-                // transactionDiv.innerHTML = `<p>${data.category_name}: $${data.amount}</p>`;
-                transactionDiv.innerHTML = `<p>${data.amount}</p>`;
+    fetch('{% url "add_transaction" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Create a new table row with the transaction data
+            const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${data.symbol} ${data.amount}</td>
+                    <td>${data.category.name}</td>
+                `;
 
-                document.getElementById('transactions-container').appendChild(transactionDiv);
-                
-                // Clear the input fields
-                document.getElementById('amount').value = '';
-                // document.getElementById('category').value = '';
-            } else {
-                alert('Error: ' + data.error);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
+                // Append the new row to the table body
+                document.getElementById('transaction-table-body').appendChild(newRow);
+            
+            // Clear the input fields
+            document.getElementById('amount').value = '';
+            // document.getElementById('category').value = '';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+});
 </script>
+
 
 
 {% endblock %}
