@@ -1,6 +1,13 @@
 {% extends "index.html" %}
 {% block start %}
 
+<ul class="steps">
+  <li class="step step-primary">Payday</li>
+  <li class="step">Variable Costs</li>
+  <li class="step">Fixed Costs</li>
+  <li class="step">Review</li>
+</ul>
+<br>
 <form method="post" action="{% url 'payday' %}">
   {% csrf_token %}
   <div class="flex items-center justify-center">
@@ -11,7 +18,7 @@
               <div class="label">
                 <span class="label-text">How much did you earn?</span>
               </div>
-              <input type="number" name="amount" placeholder="Currency" class="input input-bordered w-full max-w-xs" required />
+              <input type="number" name="amount" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs" required />
           </label>
 
           <label class="form-control w-full max-w-xs">
