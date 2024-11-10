@@ -35,5 +35,20 @@
       </div>
 
   </div>
+
+  <h1>Transactions</h1>
+  {% for transaction in transactions %}
+  <p>{{ transaction.amount }}</p>
+  {% endfor %}
+
+  <h1>Paydays</h1>
+  {% for payday in paydays %}
+  <p>{{ payday.amount }}</p>
+  {% endfor %}
+
+  <h1>monthly expenses</h1>
+  {% for x in monthly_expenses %}
+  <p>{{ x.start_date }}</p>
+  {% endfor %}
   
 {% endblock %}
