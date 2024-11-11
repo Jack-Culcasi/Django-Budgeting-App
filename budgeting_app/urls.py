@@ -31,5 +31,7 @@ urlpatterns = [
     path('add_transaction/', views.add_transaction, name='add_transaction'),
     path('paydays/', views.paydays, name='paydays'),
     path('monthly_expenses/<int:payday_id>/', views.monthly_expenses, name='monthly_expenses'),
-    path('categories/', views.categories, name='categories')
+    path('categories/', views.categories, name='categories'),
+    path('delete_transaction/', views.delete_transaction, name='delete_transaction')
+
 ]
