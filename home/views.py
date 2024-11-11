@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from datetime import datetime, timedelta
 from .models import NetWorth, Payday, Category, Transaction, MonthlyExpenses, FixedCosts, UserPreferences
 
@@ -114,11 +114,11 @@ def add_transaction(request):
 
         monthly_expenses = MonthlyExpenses.objects.get(id=monthly_expense_id)
         if category_id:
-
-            category = Category.objects.get(id=int(category_id[0]))
+            category = Category.objects.get(id=int(category_id[0]), user=request.user)
+            category_name = category.name
         else:
             category = None
-
+            category_name = ''
         try:
             transaction = Transaction.objects.create(
                 user=request.user,
@@ -133,6 +133,8 @@ def add_transaction(request):
                 'success': True,
                 'amount': amount,
                 'symbol': request.user.userpreferences.currency_symbol,
+                'category_name': category_name,
+                'transaction_id': transaction.id,
             })
 
         except Category.DoesNotExist:
@@ -141,13 +143,22 @@ def add_transaction(request):
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 @login_required
+def delete_transaction(request):
+    if request.method == 'POST':
+        transaction_id = request.POST.get('transaction_id')  
+        monthly_expense_id = request.POST.get('monthly_expense_id')
+        payday_id = request.POST.get('payday_id')     
+        print(transaction_id, monthly_expense_id, payday_id)
+        transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
+        transaction_object.delete()
+
+    return redirect('expenses', payday_id, monthly_expense_id)
+        
+
+
+@login_required
 def paydays(request):
     paydays = Payday.objects.filter(user=request.user)
-    if request.method == 'POST':
-        # The Delete button is pressed
-        payday_id = request.POST.get('payday_id')
-        payday_object = Payday.objects.get(id=payday_id)    
-        payday_object.delete()
 
     context = {
         'paydays': paydays
@@ -156,10 +167,20 @@ def paydays(request):
     return render(request, 'paydays.html', context)
 
 @login_required
+def delete_payday(request):
+    if request.method == 'POST':
+        # The Delete button is pressed
+        payday_id = request.POST.get('payday_id')
+        payday_object = Payday.objects.get(id=payday_id, user=request.user)    
+        payday_object.delete()
+
+    return render(request, 'paydays.html')
+
+@login_required
 def monthly_expenses(request, payday_id):
-    payday_object = Payday.objects.get(id=payday_id)
+    payday_object = Payday.objects.get(id=payday_id, user=request.user)
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday_object)
-    transactions = Transaction.objects.filter(monthly_expenses=monthly_expenses)
+    transactions = Transaction.objects.filter(monthly_expenses=monthly_expenses, user=request.user)
     context = {
         'transactions' : transactions
     }
