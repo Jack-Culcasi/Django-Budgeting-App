@@ -88,7 +88,6 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
     except Payday.DoesNotExist:
         return redirect('payday')
     
-    fixed_costs = FixedCosts.objects.filter(user=request.user)
     monthly_expenses = MonthlyExpenses.objects.get(id=monthly_expense_id)
     categories = Category.objects.filter(user=request.user)
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
@@ -98,7 +97,6 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
         'categories': categories,
         'transactions': transactions,
         'monthly_expense_id': monthly_expense_id,
-        'fixed_costs': fixed_costs,
     }
     return render(request, 'expenses.html', context)
 
@@ -202,3 +200,71 @@ def categories(request):
         'categories': categories
     }
     return render(request, 'categories.html', context)
+
+@login_required
+def payday_fixed_costs(request, payday_id, monthly_expense_id):
+    user_fixed_costs = FixedCosts.objects.filter(user=request.user)
+    payday = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
+
+    variable_costs = 0
+    for transaction in transactions:
+        variable_costs += transaction.amount
+
+    if request.method == 'POST':    
+        new_amount = request.POST.getlist('new_amount')
+        fixed_cost_id = request.POST.getlist('fixed_cost_id')
+
+        # Create a list of tuples containg (id, amount)
+        amount_ids_list = []
+        for x in range(0, len(new_amount)):
+            amount_ids_list.append((int(fixed_cost_id[x]), float(new_amount[x])))
+
+        # Create a new fixed_costs object related to the monthly expenses
+        for element in amount_ids_list:
+            fixed_cost = FixedCosts.objects.get(user=request.user, id=element[0])
+            new_fixed_costs = FixedCosts.objects.create(
+                user=request.user,
+                monthly_expenses=monthly_expenses,
+                name = fixed_cost.name,
+                amount=element[1]                
+        )
+        return redirect('deductions', payday_id=payday_id, monthly_expense_id=monthly_expense_id)
+
+    context = {
+        'user_fixed_costs': user_fixed_costs,
+        'payday': payday,
+        'variable_costs': variable_costs,
+        'monthly_expense_id': monthly_expense_id,
+    }
+
+    return render(request, 'payday_fixed_costs.html', context)
+
+@login_required
+def fixed_costs(request):
+    fixed_costs = FixedCosts.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        fixed_cost_name = request.POST.get('name')
+        fixed_cost_amount = request.POST.get('amount')
+        fixed_cost_note = request.POST.get('note', None)
+        new_fixed_cost = FixedCosts.objects.create(
+            user=request.user,
+            name=fixed_cost_name,
+            amount=fixed_cost_amount,
+            note=fixed_cost_note
+        )
+
+    context = {
+        'fixed_costs': fixed_costs
+    }
+    return render(request, 'fixed_costs.html', context)
+
+@login_required
+def deductions(request, payday_id, monthly_expense_id):
+    fixed_costs = FixedCosts.objects.filter(user=request.user)
+    context = {
+        'fixed_costs': fixed_costs,
+    }
+    return render(request, 'deductions.html', context)
