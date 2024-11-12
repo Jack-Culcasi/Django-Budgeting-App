@@ -1,61 +1,56 @@
-{% if fixed_costs %}
-<p>yes</p>
-<table class="table">
-    <thead>
-      <tr>
-        {% for fixed_cost in fixed_costs %}
-        <th>{{ fixed_cost.name }}</th>
-        {% endfor %}
-      </tr>
-    </thead>
-    {% for fixed_cost in fixed_costs %}
-    <tbody>
-      <tr class="hover">
-        <td>{{ fixed_cost.amount }}</td>
-      </tr>
-    </tbody>
-    {% endfor %}
-  </table>
-  {% else %}
-  <table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr class="hover">
-            <td>
-                <input type="text" placeholder="Rent" class="input w-full max-w-xs" />
-            </td>
-            <td>
-                <input type="number" placeholder="1000" class="input w-full max-w-xs" />
-            </td>
-        </tr>
-    </tbody>
-  </table>
-  {% endif %}
+{% extends "index.html" %}
+{% block start %}
+<form method="post" action="{% url 'fixed_costs' %}">
+{% csrf_token %}
+<div class="flex flex-col items-center justify-center">
+    <!-- Add a Category Section -->
+    <div class="flex flex-col items-center w-full max-w-xs mb-4">
+        <div class="label">
+            <span class="label-text">Name</span>
+        </div>
+        <input type="text" name="name" placeholder="Rent" class="input input-bordered w-full" required />
+    </div>
 
-  <br>
+    <label class="form-control w-full max-w-xs">
+        <div class="label">
+          <span class="label-text">Amount</span>
+        </div>
+        <input type="number" name="amount" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs" required />
+    </label>
 
-  <div class="overflow-x-auto">
+    <!-- Note Section -->
+    <div class="flex flex-col items-center w-full max-w-xs">
+        <label class="form-control w-full">
+            <div class="label">
+                <span class="label-text">Note</span>
+            </div>
+            <textarea class="textarea textarea-bordered h-24 w-full" name="note" placeholder="I would rather not pay it"></textarea>
+        </label>
+        <button type="submit" class="btn btn-primary mt-4">Add fixed cost</button>
+    </div>
+</div>
+</form>
+<br>
+<div class="overflow-x-auto">
     <table class="table">
       <thead>
         <tr>
-          <th>Amount</th>
-          {% for category in categories %}
           <th></th>
-          {% endfor %}
+          <th>Amount</th>
+          <th>Note</th>
         </tr>
       </thead>
+      {% for fixed_cost in fixed_costs %}
       <tbody>
         <tr>
-          <th>{{ user.userpreferences.currency_symbol }} {{ transaction.amount|floatformat:2 }}</th>
-          {% for category in categories %}
-          <td>{{ category.name }}</td>
-          {% endfor %}
+          <td>
+          <a  href="#" class="btn btn-outline">{{ fixed_cost.name }}</a>
+          </td>
+          <td>{{ fixed_cost.amount }}</td>
+          <td>{{ fixed_cost.note }}</td>
         </tr>
       </tbody>
+      {% endfor %}
     </table>
   </div>
+{% endblock %}
