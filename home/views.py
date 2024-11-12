@@ -16,8 +16,6 @@ def home(request):
     transactions = Transaction.objects.all()
     monthly_expenses = MonthlyExpenses.objects.all()
     paydays = Payday.objects.all()
-    for transaction in transactions:
-        print(transaction.category)
 
     context = {
         'net_worth': net_worth,
@@ -148,7 +146,6 @@ def delete_transaction(request):
         transaction_id = request.POST.get('transaction_id')  
         monthly_expense_id = request.POST.get('monthly_expense_id')
         payday_id = request.POST.get('payday_id')     
-        print(transaction_id, monthly_expense_id, payday_id)
         transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
         transaction_object.delete()
 
@@ -171,10 +168,11 @@ def delete_payday(request):
     if request.method == 'POST':
         # The Delete button is pressed
         payday_id = request.POST.get('payday_id')
-        payday_object = Payday.objects.get(id=payday_id, user=request.user)    
+        source = request.POST.get('source', '/home/')
+        payday_object = Payday.objects.get(id=payday_id, user=request.user)
         payday_object.delete()
 
-    return render(request, 'paydays.html')
+    return redirect(source)
 
 @login_required
 def monthly_expenses(request, payday_id):
