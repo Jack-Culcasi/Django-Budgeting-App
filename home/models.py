@@ -62,7 +62,7 @@ class FixedCosts(models.Model):
     note = models.CharField(max_length=255, null=True, blank=True)  
 
     def __str__(self):
-        return f"{self.name} ({self.amount}) for {self.monthly_expenses.payday.payday_date('%B %Y')}"
+        return f"{self.name}: ({self.amount}, {self.monthly_expenses}) "
 
 
 class Broker(models.Model):
