@@ -9,9 +9,18 @@
 </ul>
 <br>
 <div class="flex items-center justify-between">
-    <!-- Transaction Input Form -->
+    
     <div class="flex flex-col items-center w-1/2">
-
+        <div class="flex justify-center space-x-10">
+        <div class="stats shadow">
+            <div class="stat">
+              <div class="stat-title">Salary</div>
+              <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ payday.amount }}</div>
+            </div>
+          </div>
+        </div>  
+        <br>
+        <!-- Transaction Input Form -->
         <form id="transaction-form" method="POST" action="{% url 'add_transaction' %}">
             {% csrf_token %}
             <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" step="0.001" required>
@@ -28,7 +37,13 @@
             <button type="submit" class="btn btn-primary w-full">Add Transaction</button>
             <br>
             <br>
-            <button type="" class="btn btn-accent w-full">to Fixed Costs</button>
+        </form>
+        <form method="POST" action="{% url 'payday_fixed_costs' payday_id=payday.id monthly_expense_id=monthly_expense_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="monthly_expense_id" id="monthly_expense_id" value="{{ monthly_expense_id }}">
+            <div class="flex-1">
+                <button type="submit" name="to_fixed_costs" class="btn btn-accent w-full">to Fixed Costs</a>
+            </div>
         </form>
     </div>
 
