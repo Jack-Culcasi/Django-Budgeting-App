@@ -38,17 +38,58 @@
 
   <h1>Transactions</h1>
   {% for transaction in transactions %}
-  <p>{{ transaction.amount }} {{ transaction.category.name }}</p>
+      <p>{{ transaction.monthly_expense.id }} {{ transaction.amount }} {{ transaction.category.name }}</p>
   {% endfor %}
-
+  
   <h1>Paydays</h1>
   {% for payday in paydays %}
-  <p>{{ payday.amount }}</p>
+      <p>{{ payday.amount }}</p>
   {% endfor %}
-
-  <h1>monthly expenses</h1>
+  
+  <h1>Monthly Expenses</h1>
   {% for x in monthly_expenses %}
-  <p>{{ x.start_date }}</p>
+      <p>{{ x.start_date }}</p>
   {% endfor %}
+  
+  <h1>User Preferences</h1>
+  {% for preference in user_preferences %}
+      <p>Currency Symbol: {{ preference.currency_symbol }}</p>
+  {% endfor %}
+  
+  <h1>Categories</h1>
+  {% for category in categories %}
+      <p>{{ category.name }} - {{ category.note }} - {{ category.monthly_expenses.id }}</p>
+  {% endfor %}
+  
+  <h1>Fixed Costs</h1>
+  {% for fixed_cost in fixed_costs %}
+      <p>{{ fixed_cost.name }}: {{ fixed_cost.amount }} - {{ fixed_cost.note }}</p>
+  {% endfor %}
+  
+  <h1>Brokers</h1>
+  {% for broker in brokers %}
+      <p>{{ broker.name }} - {{ broker.amount }} (Last Update: {{ broker.latest_update }})</p>
+  {% endfor %}
+  
+  <h1>Banks</h1>
+  {% for bank in banks %}
+      <p>{{ bank.name }} - {{ bank.amount }} (Last Update: {{ bank.latest_update }})</p>
+  {% endfor %}
+  
+  <h1>Pensions</h1>
+  {% for pension in pensions %}
+      <p>{{ pension.name }} - {{ pension.amount }} (Last Update: {{ pension.latest_update }})</p>
+  {% endfor %}
+  
+  <h1>Net Worth</h1>
+  {% for net in net_worth %}
+      <p>Total Savings: {{ net.total_savings }} - Total Investments: {{ net.total_investments }} - Net Worth: {{ net.net_worth }}</p>
+  {% endfor %}
+  
+  <!-- <h1>Investments</h1>
+  {% for investment in investments %}
+      <p>{{ investment.name }} - {{ investment.amount }} (Broker: {{ investment.broker.name }})</p>
+  {% endfor %} -->
+  
   
 {% endblock %}
