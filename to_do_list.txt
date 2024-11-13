@@ -1,3 +1,7 @@
 - Note tooltip to be added
 - Fixed costs will need to be broken down to update utilities, groceries and misc. Perhaps using pre made categories.
 - <meta> tag with token needs to be fixed
+
+- Dove ho lasciato: 
+        - Ultimare processo di registrazione con al creazione di banca, broker etc... signals.py da controllare
+        - continuare payday, creare investments page
