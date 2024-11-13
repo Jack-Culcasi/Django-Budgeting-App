@@ -19,14 +19,6 @@ class Payday(models.Model):
 
     def __str__(self):
         return f'Payday for {self.user.username} on {self.payday_date}'
-    
-class Category(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255, unique=True)
-    note = models.CharField(max_length=255, null=True, blank=True)
-
-    def __str__(self):
-        return self.name
 
 class MonthlyExpenses(models.Model):
     payday = models.ForeignKey(Payday, on_delete=models.CASCADE, related_name='monthly_expenses')
@@ -44,6 +36,16 @@ class MonthlyExpenses(models.Model):
     def __str__(self):
         return f'Monthly Expenses for {self.payday}'
     
+class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    monthly_expenses = models.ForeignKey(MonthlyExpenses, on_delete=models.CASCADE, related_name='categories', null=True, blank=True)
+    name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    note = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
@@ -62,8 +64,7 @@ class FixedCosts(models.Model):
     note = models.CharField(max_length=255, null=True, blank=True)  
 
     def __str__(self):
-        return f"{self.name}: ({self.amount}, {self.monthly_expenses}) "
-
+        return f"{self.name}: ({self.amount}, {self.monthly_expenses})"
 
 class Broker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brokers')
@@ -77,6 +78,15 @@ class Broker(models.Model):
 
     def __str__(self):
         return f'Broker: {self.name} for {self.user.username}'
+
+class Investment(models.Model):
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE, related_name='investments')
+    name = models.CharField(max_length=255)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    note = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"Investment in {self.name} for {self.amount} by {self.broker.name}"
 
 
 class Bank(models.Model):
