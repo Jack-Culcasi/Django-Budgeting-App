@@ -36,6 +36,7 @@ urlpatterns = [
     path('delete_payday/', views.delete_payday, name='delete_payday'),
     path('payday_fixed_costs/<int:payday_id>/<int:monthly_expense_id>/', views.payday_fixed_costs, name='payday_fixed_costs'),
     path('fixed_costs/', views.fixed_costs, name='fixed_costs'),
-    path('deductions/<int:payday_id>/<int:monthly_expense_id>/', views.deductions, name='deductions')
+    path('deductions/<int:payday_id>/<int:monthly_expense_id>/', views.deductions, name='deductions'),
+    path('first_time_user/', views.first_time_user, name='first_time_user'),
 
 ]
