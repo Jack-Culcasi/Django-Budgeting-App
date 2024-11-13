@@ -1,6 +1,81 @@
 {% extends "index.html" %}
 {% block start %}
-{% for x in fixed_costs %}
-<p>{{ x }}</p>
-{% endfor %}
+
+<ul class="steps">
+    <li class="step step-primary">Payday</li>
+    <li class="step step-primary">Variable Costs</li>
+    <li class="step step-primary">Fixed Costs</li>
+    <li class="step step-primary">Deductions</li>
+    <li class="step">Investments</li>
+    <li class="step">Pension</li>
+    <li class="step">Savings</li>
+    <li class="step">Review</li>
+</ul>
+<br>
+<div class="flex justify-center space-x-10">
+    <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Salary</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ payday.amount }}</div>
+        </div>
+      </div>
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Variable costs</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</div>
+        </div>
+      </div>
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Fixed Costs</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ total_fixed_costs }}</div>
+        </div>
+      </div>
+</div>  
+<form method="post" action="{% url 'deductions' payday_id=payday.id monthly_expense_id=monthly_expense_id %}">
+    {% csrf_token %}
+    <div class="flex items-center justify-center">
+        <div class="flex flex-col">
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                  <span class="label-text">Deduction amount</span>
+                </div>
+                <input type="number" name="deduction_amounts" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs"/>
+            </label>
+            <br>
+            <p>Deduct whole or splitted categories and fixed costs:</p>
+            <div class="overflow-x-auto">
+                <table class="table">
+                <!-- head -->
+                <thead>
+                    <tr>
+                    <th></th>
+                    <th></th>
+                    <th>Deduct</th>
+                    <th>Split</th>
+                    </tr>
+                </thead>
+                {% for fixed_cost in fixed_costs %}
+                <tbody>
+                    <tr>
+                    <th>{{ fixed_cost.name }}</th>
+                    <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+                    <td>
+                        <input type="checkbox" class="checkbox" name="full_fixed_cost" id="full_fixed_cost" value="{{ fixed_cost.amount }}" />
+                    </td>
+                    <td>
+                        <input type="checkbox" class="checkbox" name="split_fixed_cost" id="split_fixed_cost" value="{{ fixed_cost.amount }}" />
+                    </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+                </table>
+            </div> 
+  
+            <!-- Submit button -->
+            <button type="submit" class="btn btn-primary mt-4">Go to Investments</button>
+        </div>
+    </div>
+  </form>
+
 {% endblock %}
