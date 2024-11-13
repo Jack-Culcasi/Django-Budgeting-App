@@ -5,13 +5,16 @@
   <li class="step step-primary">Payday</li>
   <li class="step step-primary">Variable Costs</li>
   <li class="step step-primary">Fixed Costs</li>
+  <li class="step">Deductions</li>
+  <li class="step">Investments</li>
+  <li class="step">Pension</li>
+   <li class="step">Savings</li>
   <li class="step">Review</li>
 </ul>
 <br>
 <form method="POST" action="{% url 'payday_fixed_costs' payday_id=payday.id monthly_expense_id=monthly_expense_id %}">
   {% csrf_token %}
   <div class="flex items-center justify-between">
-    <!-- Transaction Input Form -->
     <div class="flex flex-col items-center w-1/2">
       <div class="flex justify-center space-x-10">
         <div class="stats shadow">
