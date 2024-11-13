@@ -5,6 +5,10 @@
     <li class="step step-primary">Payday</li>
     <li class="step step-primary">Variable Costs</li>
     <li class="step">Fixed Costs</li>
+    <li class="step">Deductions</li>
+    <li class="step">Investments</li>
+    <li class="step">Pension</li>
+    <li class="step">Savings</li>
     <li class="step">Review</li>
 </ul>
 <br>
@@ -25,6 +29,7 @@
             {% csrf_token %}
             <input type="number" name="amount" id="amount" class="input input-bordered w-full mb-2" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" step="0.001" required>
             <input type="hidden" name="monthly_expense_id" id="monthly_expense_id" value="{{ monthly_expense_id }}">
+            <input type="hidden" class="checkbox" name="categories" id="categories" value="{{ category.id }}" />
             {% for category in categories %}
               <div class="form-control">
                 <label class="label cursor-pointer">
