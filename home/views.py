@@ -12,11 +12,16 @@ def home(request):
     else:
         net_worth = 0  # Handle the case when no record exists
 
-    '''if Bank.objects.filter(user=request.user).exists():
-        pass
-    else:
-        print(Bank.objects.filter(user=request.user).exists())
-        return redirect('first_time_user')'''
+    # Determine completion based on existing data for each step
+    steps_completed = {
+        "account_created": True,
+        "add_bank": request.user.banks.exists(),
+        "add_broker": request.user.brokers.exists(),
+        "add_fixed_cost": request.user.fixedcosts_set.exists(),
+        "add_investment": request.user.brokers.filter(investments__isnull=False).exists(),
+        "add_categories": request.user.category_set.exists(),
+    }
+    payday_exists = request.user.paydays.exists() # Determine to show the completion bar
 
     # Temporary
     '''Transaction.objects.all().delete()
@@ -40,11 +45,8 @@ def home(request):
     banks = Bank.objects.all()
     pensions = Pension.objects.all()
     net_worths = NetWorth.objects.all()
-    #investments = Investment.objects.all()
-    #UserPreferences.objects.create(user=request.user, currency_symbol='£')
-
-
-    
+    investments = Investment.objects.all()
+    #UserPreferences.objects.create(user=request.user, currency_symbol='£')   
 
     context = {
     'net_worth': net_worths,
@@ -57,15 +59,16 @@ def home(request):
     'brokers': brokers,
     'banks': banks,
     'pensions': pensions,
-    #'investments': investments
+    'investments': investments,
+    'steps_completed': steps_completed,
+    'payday_exists': payday_exists,
     }   
-
     
     return render(request, 'home.html', context)
 
 @login_required
-def first_time_user(request):
-    return render(request, 'first_time_user.html')
+def first_time_buttons(request):
+    pass
 
 @login_required
 def payday(request):
@@ -365,3 +368,59 @@ def deductions(request, payday_id, monthly_expense_id):
 
     }
     return render(request, 'deductions.html', context)
+
+@login_required
+def banks(request):
+    banks = Bank.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        bank_name = request.POST.get('name')
+        bank_note = request.POST.get('note', None)
+        new_bank = Bank.objects.create(
+            user=request.user,
+            name=bank_name,
+            note=bank_note
+        )
+
+    context = {
+        'banks': banks
+    }
+    return render(request, 'banks.html', context)
+
+@login_required
+def investments(request):
+    investments = Investment.objects.filter(broker__user=request.user)
+
+    if request.method == 'POST':
+        investment_name = request.POST.get('name')
+        investment_amount = request.POST.get('amount')
+        investment_note = request.POST.get('note', None)
+        new_investment = Investment.objects.create(
+            user=request.user,
+            name=investment_name,
+            amount=investment_amount,
+            note=investment_note
+        )
+
+    context = {
+        'investments': investments
+    }
+    return render(request, 'investments.html', context)
+
+@login_required
+def brokers(request):
+    brokers = Broker.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        broker_name = request.POST.get('name')
+        broker_note = request.POST.get('note', None)
+        new_broker = Broker.objects.create(
+            user=request.user,
+            name=broker_name,
+            note=broker_note
+        )
+
+    context = {
+        'brokers': brokers
+    }
+    return render(request, 'brokers.html', context)
