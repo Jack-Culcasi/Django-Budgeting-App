@@ -272,6 +272,11 @@ def categories(request):
 def payday_fixed_costs(request, payday_id, monthly_expense_id):
     user_fixed_costs = FixedCosts.objects.filter(user=request.user)
     payday = Payday.objects.get(user=request.user, id=payday_id)
+    # Problem here!
+    print(f"Payday ID: {payday.id}")
+    print(f"Monthly Expense ID: {monthly_expense_id}")
+    for x in MonthlyExpenses.objects.all():
+        print(x.id, x.payday.id)
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
 
