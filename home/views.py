@@ -300,7 +300,10 @@ def payday_fixed_costs(request, payday_id, monthly_expense_id):
                     monthly_expenses=monthly_expenses,
                     name = fixed_cost.name,
                     amount=element[1]                
-            )
+                    )
+                # Update Fixed Cost record without ME 
+                fixed_cost.amount = element[1] 
+                fixed_cost.save()
             return redirect('deductions', payday_id=payday_id, monthly_expense_id=monthly_expense_id)
 
     context = {
@@ -366,6 +369,15 @@ def payday_investments(request, payday_id, monthly_expense_id):
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
     total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
     investments = Investment.objects.filter(broker__user=request.user)
+
+    if request.method == 'POST': # Update Investment record
+        new_amounts = request.POST.getlist('new_amount')
+        investment_ids = request.POST.getlist('investment_id')
+        broker_ids = request.POST.getlist('broker_id')
+        updated_investments = update_investments(request, new_amounts, investment_ids, broker_ids)
+        if updated_investments:
+            return redirect('payday_pension', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
+        
     
     context = {
     'payday': payday,  
@@ -377,6 +389,78 @@ def payday_investments(request, payday_id, monthly_expense_id):
     }
     return render(request, 'payday_investments.html', context)
 
+@login_required
+def payday_pension(request, payday_id, monthly_expense_id):
+    user_pensions = Pension.objects.filter(user=request.user)
+    payday = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
+
+    if request.method == 'POST': # Update Pension record
+        pension_ids = request.POST.getlist('pension_id')
+        new_amounts = request.POST.getlist('new_amount')
+        updated_pensions = update_pensions(request, new_amounts, pension_ids)
+        if updated_pensions:
+            return redirect('payday_savings', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
+        
+    
+    context = {
+        'user_pensions': user_pensions,
+        'payday': payday,  
+        'monthly_expense_id': monthly_expense_id,  
+        'variable_costs': variable_costs,  
+        'total_fixed_costs': total_fixed_costs,  
+        'deductions': monthly_expenses.deductions,
+    }
+
+    return render(request, 'payday_pensions.html', context)
+
+@login_required
+def payday_savings(request, payday_id, monthly_expense_id):
+    user_banks = Bank.objects.filter(user=request.user)
+    payday = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
+
+    if request.method == 'POST': # Update Bank record
+        bank_ids = request.POST.getlist('bank_id')
+        new_amounts = request.POST.getlist('new_amount')
+        updated_savings = update_savings(request, new_amounts, bank_ids)
+        if updated_savings:
+            return redirect('payday_review', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
+        
+    
+    context = {
+        'user_banks': user_banks,
+        'payday': payday,  
+        'monthly_expense_id': monthly_expense_id,  
+        'variable_costs': variable_costs,  
+        'total_fixed_costs': total_fixed_costs,  
+        'deductions': monthly_expenses.deductions,
+    }
+
+    return render(request, 'payday_savings.html', context)
+
+@login_required
+def payday_review(request, payday_id, monthly_expense_id):
+    payday = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
+    transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
+
+    context = {
+        'payday': payday,  
+        'monthly_expense_id': monthly_expense_id,  
+        'variable_costs': variable_costs,  
+        'total_fixed_costs': total_fixed_costs,  
+        'deductions': monthly_expenses.deductions,
+        'transactions': transactions,
+    }
+
+    return render(request, 'payday_review.html', context)
 
 @login_required
 def banks(request):
@@ -384,11 +468,13 @@ def banks(request):
 
     if request.method == 'POST':
         bank_name = request.POST.get('name')
+        amount = request.POST.get('amount')
         bank_note = request.POST.get('note', None)
         new_bank = Bank.objects.create(
             user=request.user,
             name=bank_name,
-            note=bank_note
+            note=bank_note,
+            amount=Decimal(amount)
         )
 
     context = {
@@ -399,20 +485,32 @@ def banks(request):
 @login_required
 def investments(request):
     investments = Investment.objects.filter(broker__user=request.user)
+    brokers = Broker.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        investment_name = request.POST.get('name')
-        investment_amount = Decimal(request.POST.get('amount'))
-        investment_note = request.POST.get('note', None)
-        new_investment = Investment.objects.create(
-            user=request.user,
-            name=investment_name,
-            amount=investment_amount,
-            note=investment_note
-        )
+        investment_id = request.POST.get('investment_id')
+
+        if investment_id: # Delete button
+            broker_id = request.POST.get('broker_id')
+            broker = Broker.objects.get(user=request.user, id=broker_id)
+            investment = Investment.objects.get(broker=broker, id=investment_id)
+            investment.delete()
+        else: # Add an Investment
+            investment_name = request.POST.get('name')
+            investment_amount = Decimal(request.POST.get('amount'))
+            investment_note = request.POST.get('note', None)
+            broker_id = request.POST.get('broker_id')
+            broker = Broker.objects.get(user=request.user, id=broker_id)
+            new_investment = Investment.objects.create(
+                name=investment_name,
+                amount=investment_amount,
+                note=investment_note,
+                broker=broker
+            )
 
     context = {
-        'investments': investments
+        'investments': investments,
+        'brokers':brokers,
     }
     return render(request, 'investments.html', context)
 
@@ -433,3 +531,23 @@ def brokers(request):
         'brokers': brokers
     }
     return render(request, 'brokers.html', context)
+
+@login_required
+def pensions(request):
+    pensions = Pension.objects.filter(user=request.user)
+
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        pension_name = request.POST.get('name')
+        pension_note = request.POST.get('note', None)
+        new_pension = Pension.objects.create(
+            user=request.user,
+            name=pension_name,
+            note=pension_note,
+            amount=amount
+        )
+
+    context = {
+        'pensions': pensions,
+    }
+    return render(request, 'pensions.html', context)
