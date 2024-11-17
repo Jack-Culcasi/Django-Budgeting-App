@@ -26,7 +26,7 @@
           <div class="stats shadow">
             <div class="stat">
               <div class="stat-title">Variable costs</div>
-              <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ variable_costs }}</div>
+              <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</div>
             </div>
           </div>
         </div>  
@@ -49,7 +49,7 @@
               <tbody>
                 {% for fixed_cost in user_fixed_costs %}
                 <tr class="hover">
-                  <td>{{ fixed_cost.name }}</td>
+                  <td>{{ fixed_cost.name }} {{ fixed_cost.monthly_expenses.id }}</td>
                   <td>
                     <input type="hidden" name="fixed_cost_id" value="{{ fixed_cost.id }}">
                     <input type="number" name="new_amount" value="{{ fixed_cost.amount }}" class="input w-full max-w-xs" />

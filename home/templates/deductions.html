@@ -61,10 +61,24 @@
                     <th>{{ fixed_cost.name }}</th>
                     <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
                     <td>
-                        <input type="checkbox" class="checkbox" name="full_fixed_cost" id="full_fixed_cost" value="{{ fixed_cost.amount }}" />
+                        <input type="checkbox" class="checkbox" name="full_cost" id="full_cost" value="{{ fixed_cost.amount }}" />
                     </td>
                     <td>
-                        <input type="checkbox" class="checkbox" name="split_fixed_cost" id="split_fixed_cost" value="{{ fixed_cost.amount }}" />
+                        <input type="checkbox" class="checkbox" name="split_cost" id="split_cost" value="{{ fixed_cost.amount }}" />
+                    </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+                {% for category in categories %}
+                <tbody>
+                    <tr>
+                    <th>{{ category.name }}</th>
+                    <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
+                    <td>
+                        <input type="checkbox" class="checkbox" name="full_cost" id="full_cost" value="{{ category.amount }}" />
+                    </td>
+                    <td>
+                        <input type="checkbox" class="checkbox" name="split_cost" id="split_cost" value="{{ category.amount }}" />
                     </td>
                     </tr>
                 </tbody>
