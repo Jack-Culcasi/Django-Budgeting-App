@@ -21,7 +21,7 @@
     <div class="stats shadow">
       <div class="stat">
         <div class="stat-title">Net Worth</div>
-        <div class="stat-value">{{ net_worth.net_worth }}</div>
+        <div class="stat-value">{{ last_net_worth.net_worth }}</div>
         <div class="stat-desc">21% more than last month</div>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Investments</div>
-          <div class="stat-value">89,400</div>
+          <div class="stat-value">{{ total_investments }}</div>
           <div class="stat-desc">21% more than last month</div>
         </div>
       </div>
@@ -37,7 +37,7 @@
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Pension</div>
-          <div class="stat-value">89,400</div>
+          <div class="stat-value">{{ total_pensions }}</div>
           <div class="stat-desc">21% more than last month</div>
         </div>
       </div>
@@ -45,7 +45,7 @@
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">PAC</div>
-          <div class="stat-value">89,400</div>
+          <div class="stat-value">{{ pac.amount }}</div>
           <div class="stat-desc">21% more than last month</div>
         </div>
       </div>

@@ -1,7 +1,6 @@
 - Note tooltip to be added
-- Fixed costs will need to be broken down to update utilities, groceries and misc. Perhaps using pre made categories.
 - <meta> tag with token needs to be fixed
 - Complete user registration process, included signals.py
 
 - Dove ho lasciato: 
-        - aggiungere funzione utils.py per fixed costs
+        - NetWorth completato, o almeno credo
