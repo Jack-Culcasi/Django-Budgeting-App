@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
 from datetime import datetime, timedelta
 from .models import *
+from .utils import *
+from decimal import Decimal
 
 @login_required
 def home(request):    
@@ -27,7 +29,6 @@ def home(request):
     '''Transaction.objects.all().delete()
     MonthlyExpenses.objects.all().delete()
     Payday.objects.all().delete()
-    UserPreferences.objects.all().delete()
     Category.objects.all().delete()
     FixedCosts.objects.all().delete()
     Broker.objects.all().delete()
@@ -82,7 +83,7 @@ def payday(request):
 
     if request.method == 'POST':
         # Get the form data
-        amount = request.POST.get('amount')
+        amount = Decimal(request.POST.get('amount'))
         payday_date = request.POST.get('date')
         start_date = request.POST.get('start_date', None)
         note = request.POST.get('note', None)
@@ -111,7 +112,6 @@ def payday(request):
                 start_date=last_two_paydays[1].payday_date,
                 end_date=payday_date - timedelta(days=1)
                 )
-    
         return redirect('expenses', payday_id=payday.id, monthly_expense_id=monthly_expense.id)
 
     context = {
@@ -151,7 +151,7 @@ def add_transaction(request):
     # If it is not the view creates a new Transaction and Category object realated to it.
     # If the user does not select any category the view then just creates a new Transaction object.
     if request.method == 'POST':
-        amount = request.POST.get('amount')
+        amount = Decimal(request.POST.get('amount'))
         monthly_expense_id = request.POST.get('monthly_expense_id')
         category_id = request.POST.getlist('categories')
         note = request.POST.get('note', '')
@@ -177,8 +177,9 @@ def add_transaction(request):
                     user=request.user,
                     monthly_expenses=monthly_expenses,
                     name=category_name,
-                    note=category.note
-            )
+                    note=category.note,
+                    amount=amount
+                )
         else:
             category = None
             category_name = ''
@@ -190,6 +191,10 @@ def add_transaction(request):
                 category=category,
                 note=note
             )
+            # If the category exists add the transaction's amount to it
+            if category != None:
+                category.amount += Decimal(amount)
+                category.save()
 
             # Return success response with the new transaction data
             return JsonResponse({
@@ -270,30 +275,22 @@ def categories(request):
 
 @login_required
 def payday_fixed_costs(request, payday_id, monthly_expense_id):
-    user_fixed_costs = FixedCosts.objects.filter(user=request.user)
     payday = Payday.objects.get(user=request.user, id=payday_id)
-    # Problem here!
-    print(f"Payday ID: {payday.id}")
-    print(f"Monthly Expense ID: {monthly_expense_id}")
-    for x in MonthlyExpenses.objects.all():
-        print(x.id, x.payday.id)
+    # (Possible) Problem here! monthly_expenses not found because of wrong combination of ids
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
-    transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
-
-    variable_costs = 0
-    for transaction in transactions:
-        variable_costs += transaction.amount
+    user_fixed_costs = FixedCosts.objects.filter(user=request.user)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
 
     if request.method == 'POST':
-        new_amount = request.POST.getlist('new_amount')
-        fixed_cost_id = request.POST.getlist('fixed_cost_id')
+        new_amount = request.POST.getlist('new_amount') # [500, 300]
+        fixed_cost_id = request.POST.getlist('fixed_cost_id') # [1, 2]
         
-        if fixed_cost_id: # Post request comes from expenses.html
+        if fixed_cost_id: # Post request comes from payday_fixed_costs.html
 
             # Create a list of tuples containg (id, amount)
-            amount_ids_list = []
+            amount_ids_list = [] # [(1, 500), (2,300)]
             for x in range(0, len(new_amount)):
-                amount_ids_list.append((int(fixed_cost_id[x]), float(new_amount[x])))
+                amount_ids_list.append((int(fixed_cost_id[x]), Decimal(new_amount[x])))
 
             # Create a new fixed_costs object related to the monthly expenses
             for element in amount_ids_list:
@@ -312,7 +309,6 @@ def payday_fixed_costs(request, payday_id, monthly_expense_id):
         'variable_costs': variable_costs,
         'monthly_expense_id': monthly_expense_id,
     }
-    print('nonpost')
     return render(request, 'payday_fixed_costs.html', context)
 
 @login_required
@@ -321,7 +317,7 @@ def fixed_costs(request):
 
     if request.method == 'POST':
         fixed_cost_name = request.POST.get('name')
-        fixed_cost_amount = request.POST.get('amount')
+        fixed_cost_amount = Decimal(request.POST.get('amount'))
         fixed_cost_note = request.POST.get('note', None)
         new_fixed_cost = FixedCosts.objects.create(
             user=request.user,
@@ -337,31 +333,21 @@ def fixed_costs(request):
 
 @login_required
 def deductions(request, payday_id, monthly_expense_id):
-    categories = Category.objects.filter(user=request.user)
     payday = Payday.objects.get(user=request.user, id=payday_id)
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    categories = Category.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
-    transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
-    # Calculate the total amount of variable costs (transactions) for this month
-    variable_costs = 0
-    for transaction in transactions:
-        variable_costs += transaction.amount
-    # Calculate the total amount of variable costs (transactions) for this month
-    total_fixed_costs = 0
-    for fixed_cost in fixed_costs:
-        total_fixed_costs += fixed_cost.amount
-
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
     if request.method == 'POST':
         deduction_amount = request.POST.get('deduction_amounts', 0)
-        full_amounts = request.POST.getlist('full_fixed_cost')
-        split_fixed_costs = request.POST.getlist('split_fixed_cost')
-        # Calculate the amount of deductions
-        deductions = 0
-        deductions += float(deduction_amount)
-        for amount in full_amounts:
-            deductions += float(amount)
-        for amount in split_fixed_costs:
-            deductions += float(amount) / 2
+        if deduction_amount == '': # If there is no input 
+            deduction_amount = 0
+        full_amounts = request.POST.getlist('full_cost')
+        split_fixed_costs = request.POST.getlist('split_cost')
+        monthly_expenses.deductions += get_deductions(full_amounts, split_fixed_costs, deduction_amount)
+        monthly_expenses.save()
+        return redirect('payday_investments', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
 
     context = {
         'fixed_costs': fixed_costs,
@@ -370,9 +356,27 @@ def deductions(request, payday_id, monthly_expense_id):
         'monthly_expense_id': monthly_expense_id,
         'variable_costs': variable_costs,
         'total_fixed_costs': total_fixed_costs,
-
     }
     return render(request, 'deductions.html', context)
+
+@login_required
+def payday_investments(request, payday_id, monthly_expense_id):
+    payday = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
+    investments = Investment.objects.filter(broker__user=request.user)
+    
+    context = {
+    'payday': payday,  
+    'monthly_expense_id': monthly_expense_id,  
+    'variable_costs': variable_costs,  
+    'total_fixed_costs': total_fixed_costs,  
+    'investments': investments,  
+    'deductions': monthly_expenses.deductions,
+    }
+    return render(request, 'payday_investments.html', context)
+
 
 @login_required
 def banks(request):
@@ -398,7 +402,7 @@ def investments(request):
 
     if request.method == 'POST':
         investment_name = request.POST.get('name')
-        investment_amount = request.POST.get('amount')
+        investment_amount = Decimal(request.POST.get('amount'))
         investment_note = request.POST.get('note', None)
         new_investment = Investment.objects.create(
             user=request.user,
