@@ -28,13 +28,14 @@ class MonthlyExpenses(models.Model):
     groceries = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     misc = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    deductions = models.DecimalField(max_digits=15, decimal_places=2, default=0)
     note = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         db_table = 'monthly_expenses'
 
     def __str__(self):
-        return f'Monthly Expenses for {self.payday}'
+        return f'Monthly Expenses for payday.id {self.payday.id}, self id {self.id}'
     
 class Category(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -44,7 +45,7 @@ class Category(models.Model):
     note = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f'Name: {self.name}, ME id: {self.monthly_expenses.id}, Amount: {self.amount}'
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
