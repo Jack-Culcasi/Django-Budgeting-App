@@ -1,0 +1,91 @@
+{% extends "index.html" %}
+{% block start %}
+
+<ul class="steps">
+  <li class="step step-primary">Payday</li>
+  <li class="step step-primary">Variable Costs</li>
+  <li class="step step-primary">Fixed Costs</li>
+  <li class="step step-primary">Deductions</li>
+  <li class="step step-primary">Investments</li>
+  <li class="step step-primary">Pension</li>
+   <li class="step">Savings</li>
+  <li class="step">Review</li>
+</ul>
+<br>
+<form method="POST" action="{% url 'payday_pension' payday_id=payday.id monthly_expense_id=monthly_expense_id %}">
+    {% csrf_token %}
+    <div class="flex items-center justify-between">
+        <div class="flex flex-col items-center w-1/2">
+
+        <div class="flex justify-center space-x-10">
+            <div class="stats shadow">
+                <div class="stat">
+                <div class="stat-title">Salary</div>
+                <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ payday.amount }}</div>
+                </div>
+            </div>
+
+            <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-title">Deductions</div>
+                <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ deductions }}</div>
+            </div>
+        </div>
+            
+        </div>
+        <br>
+        <div class="flex justify-center space-x-10">
+            <div class="stats shadow">
+                <div class="stat">
+                    <div class="stat-title">Fixed Costs</div>
+                    <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ total_fixed_costs }}</div>
+                </div>
+            </div>
+
+            <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-title">Variable costs</div>
+                <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</div>
+            </div>
+            </div>
+
+        </div>
+        <br>
+
+        <!-- Continue Button -->
+    <div class="flex-1">
+        <button class="btn btn-primary">Continue</button>
+    </div>
+
+    </div>
+
+    <div class="w-1/2">
+    <!-- Investments Table -->
+    <div>
+        <div class="overflow-x-auto">
+            <table class="table">
+            <thead>
+                <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pension in user_pensions %}
+                <tr class="hover">
+                <td>{{ pension.name }}</td>
+                <td>
+                    <input type="hidden" name="pension_id" value="{{ pension.id }}">
+                    <input type="number" name="new_amount" value="{{ pension.amount }}" class="input w-full max-w-xs" />
+                </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+    </div>
+</form>        
+
+{% endblock %}
