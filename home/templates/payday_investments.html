@@ -71,11 +71,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {% for investment in user_investments %}
+                  {% for investment in investments %}
                   <tr class="hover">
-                    <td>{{ investment.name }} {{ investment.broker.name }}</td>
+                    <td>{{ investment.name }}</td>
                     <td>
                       <input type="hidden" name="investment_id" value="{{ investment.id }}">
+                      <input type="hidden" name="broker_id" value="{{ investment.broker.id }}">
                       <input type="number" name="new_amount" value="{{ investment.amount }}" class="input w-full max-w-xs" />
                     </td>
                     <td>{{ investment.broker.name }}</td>
