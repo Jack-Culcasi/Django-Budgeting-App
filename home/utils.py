@@ -1,5 +1,6 @@
 from .models import *
 from decimal import Decimal
+from django.utils.timezone import now
 
 def monthly_variable_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
@@ -96,3 +97,109 @@ def update_savings(request, new_amounts, bank_ids):
         # Log the exception if needed
         print(f"Error updating pension: {e}")
         return False  
+    
+def create_and_update_fixed_cost(request, new_amounts, fixed_cost_ids, monthly_expenses):
+    try:
+        # Create a list of tuples containg (id, amount)
+        amount_ids_list = [] # [(1, 500), (2,300)]
+        for x in range(0, len(new_amounts)):
+            amount_ids_list.append((int(fixed_cost_ids[x]), Decimal(new_amounts[x])))
+
+        # Create a new fixed_costs object related to the monthly expenses
+        for element in amount_ids_list:
+            fixed_cost = FixedCosts.objects.get(user=request.user, id=element[0])
+            new_fixed_costs = FixedCosts.objects.create(
+                user=request.user,
+                monthly_expenses=monthly_expenses,
+                name = fixed_cost.name,
+                amount=element[1]                
+                )
+            # Update Fixed Cost record without ME 
+            fixed_cost.amount = element[1] 
+            fixed_cost.save()
+
+        return True
+    
+    except Exception as e:
+        # Log the exception if needed
+        print(f"Error updating or creating fixed_cost: {e}")
+        return False  
+    
+def get_total_savings(request):
+    user_banks = Bank.objects.filter(user=request.user)
+    total_savings = 0
+    for bank in user_banks:
+        total_savings += bank.amount
+    return Decimal(total_savings)
+
+def get_total_investments(request):
+    user_investments = Investment.objects.filter(broker__user=request.user)
+    total_investments = 0
+    for investment in user_investments:
+        total_investments += investment.amount
+    return Decimal(total_investments)
+
+def get_total_pensions(request):
+    user_pensions = Pension.objects.filter(user=request.user)
+    total_pension = 0
+    for pension in user_pensions:
+        total_pension += pension.amount
+    return Decimal(total_pension)
+
+def create_net_worth(request, payday):
+    try:
+        total_savings = get_total_savings(request)
+        total_investments = get_total_investments(request)
+        total_pensions = get_total_pensions(request)
+        net_worth_amount = total_investments + total_pensions + total_savings
+
+        net_worth = NetWorth.objects.create(
+            user=request.user,
+            payday=payday,
+            date=now(),  # Current timestamp
+            total_savings=total_savings,
+            total_investments=total_investments,
+            total_pension=total_pensions,
+            net_worth=net_worth_amount
+        )
+        return True
+    
+    except Exception as e:
+        # Log the exception if needed
+        print(f"Error creating net_worth: {e}")
+        return False  
+    
+def update_monthly_expenses(request, monthly_expenses, payday):
+    try:
+        monthly_expenses.utilities = monthly_fixed_costs(request, payday.id, monthly_expenses.id)
+        monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount 
+        
+        # Get all the categories related to ME except for groceries 
+        misc_categories = Category.objects.filter(
+            user=request.user, 
+            monthly_expenses=monthly_expenses
+        ).exclude(name='groceries')
+
+        # Calculate the total amount from categories
+        misc_amount = sum(category.amount for category in misc_categories)
+
+        # Get all the transactions without category
+        misc_transactions = Transaction.objects.filter(
+            user=request.user, 
+            monthly_expenses=monthly_expenses,
+            category__isnull=True
+            )
+        
+        # Calculate the total amount from misc_transactions
+        transactions_without_category = sum(transaction.amount for transaction in misc_transactions)
+
+        monthly_expenses.misc = misc_amount
+        monthly_expenses.amount = (monthly_expenses.utilities + monthly_expenses.groceries + transactions_without_category) - monthly_expenses.deductions
+        monthly_expenses.save()
+
+        return True
+    
+    except Exception as e:
+        # Log the exception if needed
+        print(f"Error updating monthly expenses: {e}")
+        return False      
