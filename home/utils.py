@@ -196,7 +196,9 @@ def update_monthly_expenses(request, monthly_expenses, payday):
         monthly_expenses.misc = misc_amount
         monthly_expenses.amount = (monthly_expenses.utilities + monthly_expenses.groceries + transactions_without_category) - monthly_expenses.deductions
         monthly_expenses.save()
-
+        print(f"Utilities: {monthly_expenses.utilities}, Groceries: {monthly_expenses.groceries}, "
+                f"Misc Amount: {misc_amount}, Transactions Without Category: {transactions_without_category}, "
+                f"Total Amount: {monthly_expenses.amount}")
         return True
     
     except Exception as e:
