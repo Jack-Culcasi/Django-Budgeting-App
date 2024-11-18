@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse
+from django.db.models import Count
 from datetime import datetime, timedelta
 from .models import *
 from .utils import *
@@ -251,8 +252,18 @@ def monthly_expenses(request, payday_id):
     payday_object = Payday.objects.get(id=payday_id, user=request.user)
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday_object)
     transactions = Transaction.objects.filter(monthly_expenses=monthly_expenses, user=request.user)
+    # Add .transactions_count to category object
+    categories = Category.objects.filter(user=request.user, monthly_expenses=monthly_expenses).annotate(transactions_count=Count('transaction')) 
+    fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
+    monthly_net = monthly_expenses.payday.amount - monthly_expenses.amount
+    last_month = 0
     context = {
-        'transactions' : transactions
+        'transactions' : transactions,
+        'monthly_expenses': monthly_expenses,
+        'last_month': last_month,
+        'categories': categories,
+        'fixed_costs': fixed_costs,
+        'monthly_net': monthly_net
     }
 
     return render(request, 'monthly_expenses.html', context)
@@ -416,7 +427,7 @@ def payday_savings(request, payday_id, monthly_expense_id):
         if updated_savings:
             # Create the NetWorth object
             if create_net_worth(request, payday) and update_monthly_expenses(request, monthly_expenses, payday):
-                return redirect('home')
+                return redirect('monthly_expenses', payday_id)
         
     context = {
         'user_banks': user_banks,
