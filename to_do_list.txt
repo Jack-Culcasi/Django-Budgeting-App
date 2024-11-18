@@ -1,6 +1,7 @@
 - Note tooltip to be added
 - <meta> tag with token needs to be fixed
 - Complete user registration process, included signals.py
+- Possible bug in expenses.html when multiple categories are selected
 
 - Dove ho lasciato: 
-        - NetWorth completato, o almeno credo
+        - bug in calcolare monthly_expenses

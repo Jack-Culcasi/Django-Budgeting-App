@@ -1,8 +1,147 @@
 {% extends "index.html" %}
 {% block start %}
 
-{% for transaction in transactions %}
-<p>£ {{ transaction.amount }}</p>
-{% endfor %}
+<br>
+<div class="flex justify-center space-x-10">
+
+    <div class="stats shadow">
+      <div class="stat">
+        <div class="stat-title">Salary</div>
+        <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ monthly_expenses.payday.amount }}</div>
+        <div class="stat-desc">21% more than last month</div>
+      </div>
+    </div>
+
+    <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Expenses</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.amount }}</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+    </div>
+
+    <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Monthly Net</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ monthly_net }}</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+    </div>
+
+    <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Utilities</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.utilities }}</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>
+
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Groceries</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.groceries }}</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>
+
+      <div class="stats shadow">
+        <div class="stat">
+          <div class="stat-title">Misc</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.misc }}</div>
+          <div class="stat-desc">21% more than last month</div>
+        </div>
+      </div>      
+</div>
+<br>
+<div class="flex items-start justify-start">
+    <!-- Left table -->
+    <div class="flex flex-col items-right w-1/2">
+        <div class="overflow-x-auto">
+            <h1>Categories</h1>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Amount</th>
+                        <th>Transactions</th>
+                        <th>Last month</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                {% for category in categories %}
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#">{{ category.name }}</a>
+                        </td>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
+                        <td>{{ category.transactions_count }}</td>
+                        <td>{{ last_month }}</td>
+                        <td>{{ category.note }}</td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Right table -->
+    <div class="flex flex-col items-left w-1/2">
+        <div class="overflow-x-auto">
+            <h1>Fixed Costs</h1>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Amount</th>
+                        <th>Last month</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                {% for fixed_cost in fixed_costs %}
+                <tbody>
+                    <tr>
+                        <td>
+                            <a href="#">{{ fixed_cost.name }}</a>
+                        </td>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+                        <td>{{ last_month }}</td>
+                        <td>{{ fixed_cost.note }}</td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+<br>
+<div class="flex flex-col items-center">
+    <h1>Transactions</h1>
+</div>
+<br>
+<div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Category</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        {% for transaction in transactions %}
+        <tbody>
+            <tr>
+                <td>
+                    <a href="#">{{ transaction.id }}</a>
+                </td>
+                <td>{{ user.userpreferences.currency_symbol }} {{ transaction.amount }}</td>
+                <td>{{ transaction.category.name }}</td>
+                <td>{{ fixed_cost.note }}</td>
+            </tr>
+        </tbody>
+        {% endfor %}
+    </table>
+</div>
 
 {% endblock %}
