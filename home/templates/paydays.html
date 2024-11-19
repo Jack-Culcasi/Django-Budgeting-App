@@ -7,7 +7,10 @@
       <thead>
         <tr>
           <th></th>
+          <th>ME ID</th>
           <th>Amount</th>
+          <th>From</th>
+          <th>To</th>
           <th>Note</th>
           <th>Delete</th>
         </tr>
@@ -17,9 +20,16 @@
         <!-- row 2 -->
         <tr class="hover">
           <th>
-            <a  href="{% url 'monthly_expenses' payday.id %}" class="btn btn-outline">{{ payday.payday_date|date:"M. j, Y" }}</a>
+            <a  href="{% url 'monthly_expenses' payday.id %}" class="btn btn-outline">{{ payday.id }}</a>
           </th>
+          <td>{{ payday.monthly_expenses.first.id }}</td>
           <td>{{ payday.amount }}</td>
+          <td>
+            {{ payday.monthly_expenses.first.start_date|date:"M. j, Y" }}
+          </td>
+          <td>
+            {{ payday.monthly_expenses.first.end_date|date:"M. j, Y" }}
+          </td>
           <td>{{ payday.note }}</td>
           <td>
             <form action="{% url 'delete_payday' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this payday?');">
