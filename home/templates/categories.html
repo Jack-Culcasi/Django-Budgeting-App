@@ -29,8 +29,9 @@
       <thead>
         <tr>
           <th></th>
-          <th>ME id</th>
-          <th>Amount</th>
+          <th>Times used</th>
+          <th>Latest amount</th>
+          <th>Average amount</th>
           <th>Note</th>
         </tr>
       </thead>
@@ -40,8 +41,9 @@
           <td>
           <a  href="#" class="btn btn-outline">{{ category.name }}</a>
           </td>
-          <td>{{ category.monthly_expenses.id }}</td>
-          <td>{{ category.amount }}</td>
+          <td>{{ category.times_used }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ category.latest }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ category.average_amount }}</td>
           <td>{{ category.note }}</td>
         </tr>
       </tbody>

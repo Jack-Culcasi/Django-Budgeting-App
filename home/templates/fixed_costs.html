@@ -36,7 +36,9 @@
       <thead>
         <tr>
           <th></th>
-          <th>Amount</th>
+          <th>Times used</th>
+          <th>Latest amount</th>
+          <th>Average amount</th>
           <th>Note</th>
         </tr>
       </thead>
@@ -46,7 +48,9 @@
           <td>
           <a  href="#" class="btn btn-outline">{{ fixed_cost.name }}</a>
           </td>
-          <td>{{ fixed_cost.amount }}</td>
+          <td>{{ fixed_cost.times_used }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.average_amount }}</td>
           <td>{{ fixed_cost.note }}</td>
         </tr>
       </tbody>
