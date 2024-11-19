@@ -64,7 +64,7 @@
                         <th></th>
                         <th>Amount</th>
                         <th>Transactions</th>
-                        <th>Last month</th>
+                        <th>Diff last month</th>
                         <th>Note</th>
                     </tr>
                 </thead>
@@ -76,7 +76,7 @@
                         </td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
                         <td>{{ category.transactions_count }}</td>
-                        <td>{{ last_month }}</td>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ category.difference_with_last_month|floatformat:2 }}</td>
                         <td>{{ category.note }}</td>
                     </tr>
                 </tbody>
@@ -94,7 +94,7 @@
                     <tr>
                         <th></th>
                         <th>Amount</th>
-                        <th>Last month</th>
+                        <th>Diff last month</th>
                         <th>Note</th>
                     </tr>
                 </thead>
@@ -105,7 +105,7 @@
                             <a href="#">{{ fixed_cost.name }}</a>
                         </td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
-                        <td>{{ last_month }}</td>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.difference_with_last_month|floatformat:2 }}</td>
                         <td>{{ fixed_cost.note }}</td>
                     </tr>
                 </tbody>
