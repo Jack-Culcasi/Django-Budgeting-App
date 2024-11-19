@@ -102,6 +102,11 @@
     formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
 
     const categoryCheckboxes = document.querySelectorAll('input[name="categories"]:checked');
+    // Check if more than one checkbox is selected
+    if (categoryCheckboxes.length > 1) {
+        alert('Please select only one category.');
+        return;  // Exit the function if more than one category is selected
+    }
     categoryCheckboxes.forEach(checkbox => {
         formData.append('categories', checkbox.value);  
     });
