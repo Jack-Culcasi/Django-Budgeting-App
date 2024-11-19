@@ -8,7 +8,8 @@
         <tr>
           <th></th>
           <th>ME ID</th>
-          <th>Amount</th>
+          <th>Salary</th>
+          <th>Expenses</th>
           <th>From</th>
           <th>To</th>
           <th>Note</th>
@@ -23,7 +24,8 @@
             <a  href="{% url 'monthly_expenses' payday.id %}" class="btn btn-outline">{{ payday.id }}</a>
           </th>
           <td>{{ payday.monthly_expenses.first.id }}</td>
-          <td>{{ payday.amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ payday.amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ payday.monthly_expenses.first.amount }}</td>
           <td>
             {{ payday.monthly_expenses.first.start_date|date:"M. j, Y" }}
           </td>
