@@ -101,7 +101,7 @@ def payday(request):
             note=note
         )
         # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
-        if len(last_two_paydays) < 2:
+        if not last_two_paydays:
             monthly_expense = MonthlyExpenses.objects.create(
             payday=payday,
             start_date=start_date,
@@ -113,7 +113,7 @@ def payday(request):
             # the start date is related to the payday date of the previous month, the end date is the last payday date minus one day.
             # If you are paid every 1st of the month you want your monthly expenses be calculated from the 1st to the 31st.
             monthly_expense = MonthlyExpenses.objects.create(
-                payday=last_two_paydays[1],
+                payday=payday,
                 start_date=last_two_paydays[1].payday_date,
                 end_date=payday_date - timedelta(days=1)
                 )
@@ -229,9 +229,11 @@ def delete_transaction(request):
 @login_required
 def paydays(request):
     paydays = Payday.objects.filter(user=request.user)
+    monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
 
     context = {
-        'paydays': paydays
+        'paydays': paydays,
+        'monthly_expenses': monthly_expenses,
     }
 
     return render(request, 'paydays.html', context)
@@ -291,7 +293,7 @@ def payday_fixed_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
     # (Possible) Problem here! monthly_expenses not found because of wrong combination of ids
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
-    user_fixed_costs = FixedCosts.objects.filter(user=request.user)
+    user_fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
 
     if request.method == 'POST':
