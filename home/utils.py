@@ -171,8 +171,16 @@ def create_net_worth(request, payday):
     
 def update_monthly_expenses(request, monthly_expenses, payday):
     try:
-        monthly_expenses.utilities = monthly_fixed_costs(request, payday.id, monthly_expenses.id)
-        monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount
+        # Check if thare are fixed_costs and utilities related to ME, otherwise set them to 0
+        if FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses).exists():
+            monthly_expenses.utilities = monthly_fixed_costs(request, payday.id, monthly_expenses.id)
+        else:
+            monthly_expenses.utilities = 0
+        if Category.objects.filter(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').exists():
+            monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount
+        else:
+            monthly_expenses.groceries = 0
+            
         # Get all the categories related to ME except for groceries
         misc_categories = Category.objects.filter(
             user=request.user, 
@@ -199,12 +207,9 @@ def update_monthly_expenses(request, monthly_expenses, payday):
             + monthly_expenses.misc
         ) - monthly_expenses.deductions
 
-        # Save the updated object
         monthly_expenses.save()
-
         return True
 
     except Exception as e:
-        # Log the exception if needed
         print(f"Error updating monthly expenses: {e}")
         return False
