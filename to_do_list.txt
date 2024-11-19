@@ -1,7 +1,8 @@
 - Note tooltip to be added
 - <meta> tag with token needs to be fixed
 - Complete user registration process, included signals.py
-- Possible bug in expenses.html when multiple categories are selected
+- Add % difference in data show
+- Add Upload CSV file from bank statement
 
 - Dove ho lasciato: 
-        - bug in calcolare monthly_expenses
+        - Payday completato, monthly_expenses view completata
