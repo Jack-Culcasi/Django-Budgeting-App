@@ -21,95 +21,39 @@
     <div class="stats shadow">
       <div class="stat">
         <div class="stat-title">Net Worth</div>
-        <div class="stat-value">{{ last_net_worth.net_worth }}</div>
-        <div class="stat-desc">21% more than last month</div>
+        <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ last_net_worth.net_worth }}</div>
+        <div class="stat-desc">{{ last_net_worth.perc_diff_with_last_month }}% compared to last month</div>
       </div>
     </div>
 
     <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Investments</div>
-          <div class="stat-value">{{ total_investments }}</div>
-          <div class="stat-desc">21% more than last month</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_investments }}</div>
+          <div class="stat-desc">{{ last_net_worth.perc_diff_investments }}% compared to last month</div>
         </div>
       </div>
 
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Pension</div>
-          <div class="stat-value">{{ total_pensions }}</div>
-          <div class="stat-desc">21% more than last month</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_pensions }}</div>
+          <div class="stat-desc">{{ last_net_worth.perc_diff_pensions }}% compared to last month</div>
         </div>
       </div>
 
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">PAC</div>
-          <div class="stat-value">{{ pac.amount }}</div>
-          <div class="stat-desc">21% more than last month</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ pac.amount }}</div>
+          <div class="stat-desc"></div>
         </div>
       </div>
-</div>
-
-
-  <h1>Transactions</h1>
-  {% for transaction in transactions %}
-      <p>{{ transaction.monthly_expense.id }} {{ transaction.amount }} {{ transaction.category.name }}</p>
-  {% endfor %}
-  
-  <h1>Paydays</h1>
-  {% for payday in paydays %}
-      <p>{{ payday.amount }}</p>
-  {% endfor %}
-  
-  <h1>Monthly Expenses</h1>
-  {% for x in monthly_expenses %}
-      <p>{{ x.start_date }}</p>
-  {% endfor %}
-  
-  <h1>User Preferences</h1>
-  {% for preference in user_preferences %}
-      <p>Currency Symbol: {{ preference.currency_symbol }}</p>
-  {% endfor %}
-  
-  <h1>Categories</h1>
-  {% for category in categories %}
-      <p>{{ category.name }} - {{ category.note }} - {{ category.monthly_expenses.id }}</p>
-  {% endfor %}
-  
-  <h1>Fixed Costs</h1>
-  {% for fixed_cost in fixed_costs %}
-      <p>{{ fixed_cost.name }}: {{ fixed_cost.amount }} - {{ fixed_cost.note }}</p>
-  {% endfor %}
-  
-  <h1>Brokers</h1>
-  {% for broker in brokers %}
-      <p>{{ broker.name }} - {{ broker.amount }} (Last Update: {{ broker.latest_update }})</p>
-  {% endfor %}
-  
-  <h1>Banks</h1>
-  {% for bank in banks %}
-      <p>{{ bank.name }} - {{ bank.amount }} (Last Update: {{ bank.latest_update }})</p>
-  {% endfor %}
-  
-  <h1>Pensions</h1>
-  {% for pension in pensions %}
-      <p>{{ pension.name }} - {{ pension.amount }} (Last Update: {{ pension.latest_update }})</p>
-  {% endfor %}
-  
-  <h1>Net Worth</h1>
-  {% for net in net_worth %}
-      <p>Total Savings: {{ net.total_savings }} - Total Investments: {{ net.total_investments }} - Net Worth: {{ net.net_worth }}</p>
-  {% endfor %}
-  
-  <h1>Investments</h1>
-  {% for investment in investments %}
-      <p>{{ investment.name }} - {{ investment.amount }} (Broker: {{ investment.broker.name }})</p>
-  {% endfor %} 
+</div>  
 
 {% else %}
 <br>
-<form id="first_time_buttons" method="POST" action="{% url 'first_time_buttons' %}">
+<form id="first_time_buttons" method="POST" action="{% url 'first_time_buttons' %}"> <!-- To be removed -->
   <div class="flex flex-col items-center justify-center">
     <div class="flex flex-col items-center w-full max-w-xs mb-4">
       {% csrf_token %}
@@ -139,4 +83,56 @@
 
 {% endif %}
   
+<h1>Net Worth Over Time</h1>
+    <canvas id="netWorthChart" width="800" height="400"></canvas> <!-- Chart Canvas -->
+
+<script>
+  // Get the data passed from Django
+  const graphData = JSON.parse(document.getElementById('graph-data').textContent);
+  
+  // Extract data for the chart
+  const labels = graphData.dates;  // X-axis (dates)
+  const dataValues = graphData.net_worth_values;  // Y-axis (net worth values)
+
+  // Create the chart
+  const ctx = document.getElementById('netWorthChart').getContext('2d');
+  const netWorthChart = new Chart(ctx, {
+      type: 'line', // Line chart
+      data: {
+          labels: labels,
+          datasets: [{
+              label: 'Net Worth (£)',
+              data: dataValues,
+              borderColor: 'rgba(75, 192, 192, 1)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              borderWidth: 2,
+          }]
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              legend: {
+                  display: true,
+                  position: 'top',
+              },
+          },
+          scales: {
+              x: {
+                  title: {
+                      display: true,
+                      text: 'Date',
+                  },
+              },
+              y: {
+                  title: {
+                      display: true,
+                      text: 'Net Worth (£)',
+                  },
+                  beginAtZero: true,
+              },
+          },
+      }
+  });
+</script>
+
 {% endblock %}
