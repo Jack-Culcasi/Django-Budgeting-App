@@ -172,36 +172,39 @@ def create_net_worth(request, payday):
 def update_monthly_expenses(request, monthly_expenses, payday):
     try:
         monthly_expenses.utilities = monthly_fixed_costs(request, payday.id, monthly_expenses.id)
-        monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount 
-        
-        # Get all the categories related to ME except for groceries 
+        monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount
+        # Get all the categories related to ME except for groceries
         misc_categories = Category.objects.filter(
             user=request.user, 
             monthly_expenses=monthly_expenses
         ).exclude(name='groceries')
-
-        # Calculate the total amount from categories
+        # Calculate the total amount from categories related to ME
         misc_amount = sum(category.amount for category in misc_categories)
 
-        # Get all the transactions without category
+        # Get all the transactions related to ME but without a category
         misc_transactions = Transaction.objects.filter(
             user=request.user, 
             monthly_expenses=monthly_expenses,
-            category__isnull=True
-            )
-        
+            category__isnull=True)
         # Calculate the total amount from misc_transactions
         transactions_without_category = sum(transaction.amount for transaction in misc_transactions)
 
-        monthly_expenses.misc = misc_amount
-        monthly_expenses.amount = (monthly_expenses.utilities + monthly_expenses.groceries + transactions_without_category) - monthly_expenses.deductions
+        # Update misc
+        monthly_expenses.misc = misc_amount + transactions_without_category
+
+        # Update total amount
+        monthly_expenses.amount = (
+            monthly_expenses.utilities 
+            + monthly_expenses.groceries 
+            + monthly_expenses.misc
+        ) - monthly_expenses.deductions
+
+        # Save the updated object
         monthly_expenses.save()
-        print(f"Utilities: {monthly_expenses.utilities}, Groceries: {monthly_expenses.groceries}, "
-                f"Misc Amount: {misc_amount}, Transactions Without Category: {transactions_without_category}, "
-                f"Total Amount: {monthly_expenses.amount}")
+
         return True
-    
+
     except Exception as e:
         # Log the exception if needed
         print(f"Error updating monthly expenses: {e}")
-        return False      
+        return False
