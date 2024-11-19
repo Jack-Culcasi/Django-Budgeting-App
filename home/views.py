@@ -49,7 +49,15 @@ def home(request):
     last_net_worth = NetWorth.objects.filter(user=request.user).order_by('-date').first()
     investments = Investment.objects.filter(broker__user=request.user)
     pac = Investment.objects.get(broker__user=request.user, name='PAC')
-    #UserPreferences.objects.create(user=request.user, currency_symbol='£')   
+    # Data for graph
+    net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
+    # Extract dates and net worth values
+    dates = [net_worth.date.strftime('%Y-%m-%d') for net_worth in net_worths]
+    net_worth_values = [net_worth.net_worth for net_worth in net_worths]
+    graph_data = {
+        'dates': dates,
+        'net_worth_values': net_worth_values,
+    }
 
     context = {
     'last_net_worth': last_net_worth,
@@ -67,7 +75,8 @@ def home(request):
     'payday_exists': payday_exists,
     'total_investments': get_total_investments(request),
     'total_pensions': get_total_pensions(request),
-    'pac': pac
+    'pac': pac,
+    'graph_data': graph_data,
     }   
     
     return render(request, 'home.html', context)
@@ -258,11 +267,9 @@ def monthly_expenses(request, payday_id):
     categories = Category.objects.filter(user=request.user, monthly_expenses=monthly_expenses).annotate(transactions_count=Count('transaction')) 
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
     monthly_net = monthly_expenses.payday.amount - monthly_expenses.amount
-    last_month = 0
     context = {
         'transactions' : transactions,
         'monthly_expenses': monthly_expenses,
-        'last_month': last_month,
         'categories': categories,
         'fixed_costs': fixed_costs,
         'monthly_net': monthly_net
@@ -272,7 +279,7 @@ def monthly_expenses(request, payday_id):
 
 @login_required
 def categories(request):
-    categories = Category.objects.filter(user=request.user)
+    categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
 
     if request.method == 'POST':
         category_name = request.POST.get('name')
@@ -316,7 +323,7 @@ def payday_fixed_costs(request, payday_id, monthly_expense_id):
 
 @login_required
 def fixed_costs(request):
-    fixed_costs = FixedCosts.objects.filter(user=request.user)
+    fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
 
     if request.method == 'POST':
         fixed_cost_name = request.POST.get('name')
