@@ -65,8 +65,25 @@ class Category(models.Model):
                 name=self.name,
                 monthly_expenses=last_month_expenses
             ).first()
-            return self.amount - (previous_category.amount if previous_category else 0)
-        return 0
+            if previous_category != None:
+                return self.amount - previous_category.amount 
+        return None
+    
+    def times_used(self):
+        all_categories = Category.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
+        return len(all_categories)
+
+    def average_amount(self):
+        all_categories = Category.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
+        category_average_amount = sum(category.amount for category in all_categories) / len(all_categories)
+        return category_average_amount
+    
+    def latest(self):
+        try:
+            latest_category = Category.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False).order_by('-monthly_expenses__payday__payday_date').first()
+            return latest_category.amount
+        except:
+            return 0
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -103,8 +120,28 @@ class FixedCosts(models.Model):
                 name=self.name,
                 monthly_expenses=last_month_expenses
             ).first()
-            return self.amount - (previous_fixed_cost.amount if previous_fixed_cost else 0)
-        return 0
+            if previous_fixed_cost != None:
+                return self.amount - previous_fixed_cost.amount 
+        return None
+    
+    def times_used(self):
+        all_fixed_costs = FixedCosts.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
+        return len(all_fixed_costs)
+
+    def average_amount(self):
+        try:
+            all_fixed_costs = FixedCosts.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
+            fixed_cost_average_amount = sum(fixed_cost.amount for fixed_cost in all_fixed_costs) / len(all_fixed_costs)
+            return fixed_cost_average_amount
+        except:
+            return 0
+        
+    def latest(self):
+        try:
+            latest_fixed_cost = FixedCosts.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False).order_by('-monthly_expenses__payday__payday_date').first()
+            return latest_fixed_cost.amount
+        except:
+            return 0
 
 class Broker(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='brokers')
@@ -171,4 +208,47 @@ class NetWorth(models.Model):
         db_table = 'net_worth'
 
     def __str__(self):
-        return f'Net Worth for {self.user.username} on {self.date}'
+        return f'Net Worth for {self.user.username} on {self.date} for {self.net_worth}'
+    
+    def perc_diff_with_last_month(self):
+        previous_net_worth = (
+            NetWorth.objects.filter(user=self.user, date__lt=self.date)
+            .order_by('-date')
+            .first()
+        )
+        if previous_net_worth and previous_net_worth.net_worth:
+            try:
+                difference = self.net_worth - previous_net_worth.net_worth
+                percentage_change = (difference / previous_net_worth.net_worth) * 100
+                return round(percentage_change, 2) 
+            except ZeroDivisionError:
+                return None  # Handle case where the previous net worth is zero
+        return None  # Return None if no previous record exists
+    
+    def perc_diff_investments(self):
+        previous_net_worth = (
+            NetWorth.objects.filter(user=self.user, date__lt=self.date)
+            .order_by('-date')
+            .first()
+        )
+        try:
+            difference = self.total_investments - previous_net_worth.total_investments
+            percentage_change = (difference / previous_net_worth.total_investments) * 100
+            return round(percentage_change, 2) 
+        except Exception as e:
+            print(f"Error perc_diff_investments: {e}")
+            return None
+        
+    def perc_diff_pensions(self):
+        previous_net_worth = (
+            NetWorth.objects.filter(user=self.user, date__lt=self.date)
+            .order_by('-date')
+            .first()
+        )
+        try:
+            difference = self.total_pension - previous_net_worth.total_pension
+            percentage_change = (difference / previous_net_worth.total_pension) * 100
+            return round(percentage_change, 2) 
+        except Exception as e:
+            print(f"Error perc_diff_investments: {e}")
+            return None
