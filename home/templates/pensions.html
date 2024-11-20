@@ -16,7 +16,7 @@
             <div class="label">
                 <span class="label-text">Amount</span>
             </div>
-            <input type="number" name="amount" placeholder="500" class="input input-bordered w-full" required />
+            <input type="number" name="amount" placeholder="{{ user.userpreferences.currency_symbol }} 500" class="input input-bordered w-full" required />
         </div>
 
         <!-- Note Section -->
@@ -50,7 +50,7 @@
                     <a href="#" class="btn btn-outline">{{ pension.name }}</a>
                 </td>
                 <td>{{ pension.name }}</td>
-                <td>{{ pension.amount }}</td>
+                <td>{{ user.userpreferences.currency_symbol }} {{ pension.amount }}</td>
                 <td>{{ pension.note }}</td>
                 <td>
                     <form action="{% url 'pensions' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this pension?')">
