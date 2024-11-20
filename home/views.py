@@ -9,6 +9,10 @@ from .utils import *
 from decimal import Decimal
 
 @login_required
+def settings(request):
+    return render(request, 'settings.html')
+
+@login_required
 def home(request):    
     if NetWorth.objects.filter(user=request.user).exists():
         net_worth = NetWorth.objects.filter(user=request.user).latest('date')
@@ -51,14 +55,30 @@ def home(request):
     pac = Investment.objects.get(broker__user=request.user, name='PAC')
     # Data for graph
     net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
-    # Extract dates and net worth values
-    dates = [net_worth.date.strftime('%Y-%m-%d') for net_worth in net_worths]
+    # Extract dates and net worth values for chart
+    dates = [net_worth.date.strftime('%m-%Y') for net_worth in net_worths]
     net_worth_values = [net_worth.net_worth for net_worth in net_worths]
+    # Extract total_savings for chart
+    savings_values = [net_worth.total_savings for net_worth in net_worths]
+    # Extract total_investments for chart
+    investments_values = [net_worth.total_investments for net_worth in net_worths]
+    # Extract expenses for chart
+    expenses_values = [net_worth.payday.get_expenses().amount for net_worth in net_worths]
+    # Extract investments excluding PAC
+    investments_no_pac = last_net_worth.total_investments - pac.amount
+    
     graph_data = {
         'dates': dates,
         'net_worth_values': net_worth_values,
+        'savings_values': savings_values,
+        'investments_values': investments_values,
+        'expenses_values':expenses_values,
+        'savings': last_net_worth.total_savings,
+        'investments': investments_no_pac ,
+        'pensions': last_net_worth.total_pension,
+        'pac': pac.amount,
     }
-
+   
     context = {
     'last_net_worth': last_net_worth,
     'transactions': transactions,
@@ -77,6 +97,7 @@ def home(request):
     'total_pensions': get_total_pensions(request),
     'pac': pac,
     'graph_data': graph_data,
+    'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
     }   
     
     return render(request, 'home.html', context)
@@ -282,13 +303,20 @@ def categories(request):
     categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
 
     if request.method == 'POST':
-        category_name = request.POST.get('name')
-        category_note = request.POST.get('note', None)
-        new_category = Category.objects.create(
-            user=request.user,
-            name=category_name,
-            note=category_note
-        )
+        category_id = request.POST.get('category_id')
+        if category_id: # Delete button
+            category_name = Category.objects.get(user=request.user, id=category_id).name
+            categories_to_be_deleted = Category.objects.filter(user=request.user, name=category_name)
+            for category in categories_to_be_deleted:
+                category.delete()
+        else: # Add category
+            category_name = request.POST.get('name')
+            category_note = request.POST.get('note', None)
+            new_category = Category.objects.create(
+                user=request.user,
+                name=category_name,
+                note=category_note
+            )
 
     context = {
         'categories': categories
@@ -326,15 +354,22 @@ def fixed_costs(request):
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
 
     if request.method == 'POST':
-        fixed_cost_name = request.POST.get('name')
-        fixed_cost_amount = Decimal(request.POST.get('amount'))
-        fixed_cost_note = request.POST.get('note', None)
-        new_fixed_cost = FixedCosts.objects.create(
-            user=request.user,
-            name=fixed_cost_name,
-            amount=fixed_cost_amount,
-            note=fixed_cost_note
-        )
+        fixed_cost_id = request.POST.get('fixed_cost_id')
+        if fixed_cost_id: # Delete button
+            fixed_cost_name = FixedCosts.objects.get(user=request.user, id=fixed_cost_id).name
+            fixed_cost_to_be_deleted = FixedCosts.objects.filter(user=request.user, name=fixed_cost_name)
+            for fixed_cost in fixed_cost_to_be_deleted:
+                fixed_cost.delete()
+        else: # Add category
+            fixed_cost_name = request.POST.get('name')
+            fixed_cost_amount = Decimal(request.POST.get('amount'))
+            fixed_cost_note = request.POST.get('note', None)
+            new_fixed_cost = FixedCosts.objects.create(
+                user=request.user,
+                name=fixed_cost_name,
+                amount=fixed_cost_amount,
+                note=fixed_cost_note
+            )
 
     context = {
         'fixed_costs': fixed_costs
@@ -454,15 +489,20 @@ def banks(request):
     banks = Bank.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        bank_name = request.POST.get('name')
-        amount = request.POST.get('amount')
-        bank_note = request.POST.get('note', None)
-        new_bank = Bank.objects.create(
-            user=request.user,
-            name=bank_name,
-            note=bank_note,
-            amount=Decimal(amount)
-        )
+        bank_id = request.POST.get('bank_id')
+        if bank_id: # Delete button
+            bank_to_be_deleted = Bank.objects.get(user=request.user, id=bank_id)
+            bank_to_be_deleted.delete()
+        else: # Add bank
+            bank_name = request.POST.get('name')
+            amount = request.POST.get('amount')
+            bank_note = request.POST.get('note', None)
+            new_bank = Bank.objects.create(
+                user=request.user,
+                name=bank_name,
+                note=bank_note,
+                amount=Decimal(amount)
+            )
 
     context = {
         'banks': banks
@@ -482,6 +522,8 @@ def investments(request):
             broker = Broker.objects.get(user=request.user, id=broker_id)
             investment = Investment.objects.get(broker=broker, id=investment_id)
             investment.delete()
+            broker.amount -= investment.amount
+            broker.save()
         else: # Add an Investment
             investment_name = request.POST.get('name')
             investment_amount = Decimal(request.POST.get('amount'))
@@ -494,6 +536,8 @@ def investments(request):
                 note=investment_note,
                 broker=broker
             )
+            broker.amount += investment_amount
+            broker.save()
 
     context = {
         'investments': investments,
@@ -506,13 +550,18 @@ def brokers(request):
     brokers = Broker.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        broker_name = request.POST.get('name')
-        broker_note = request.POST.get('note', None)
-        new_broker = Broker.objects.create(
-            user=request.user,
-            name=broker_name,
-            note=broker_note
-        )
+        broker_id = request.POST.get('broker_id')
+        if broker_id: # Delete button
+            broker_to_be_deleted = Broker.objects.get(user=request.user, id=broker_id)
+            broker_to_be_deleted.delete()
+        else: # Add bank
+            broker_name = request.POST.get('name')
+            broker_note = request.POST.get('note', None)
+            new_broker = Broker.objects.create(
+                user=request.user,
+                name=broker_name,
+                note=broker_note
+            )
 
     context = {
         'brokers': brokers
@@ -524,15 +573,20 @@ def pensions(request):
     pensions = Pension.objects.filter(user=request.user)
 
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        pension_name = request.POST.get('name')
-        pension_note = request.POST.get('note', None)
-        new_pension = Pension.objects.create(
-            user=request.user,
-            name=pension_name,
-            note=pension_note,
-            amount=amount
-        )
+        pension_id = request.POST.get('pension_id')
+        if pension_id: # Delete button
+            pension_to_be_deleted = Pension.objects.get(user=request.user, id=pension_id)
+            pension_to_be_deleted.delete()
+        else: # Add bank
+            amount = request.POST.get('amount')
+            pension_name = request.POST.get('name')
+            pension_note = request.POST.get('note', None)
+            new_pension = Pension.objects.create(
+                user=request.user,
+                name=pension_name,
+                note=pension_note,
+                amount=amount
+            )
 
     context = {
         'pensions': pensions,
