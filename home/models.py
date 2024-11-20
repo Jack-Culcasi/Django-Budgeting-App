@@ -17,6 +17,13 @@ class Payday(models.Model):
     class Meta:
         db_table = 'payday'
 
+    def get_expenses(self):
+        try:
+            monthly_expense = MonthlyExpenses.objects.get(payday=self)
+            return monthly_expense
+        except:
+            return None
+
     def __str__(self):
         return f'Payday for {self.user.username} on {self.payday_date}'
 
