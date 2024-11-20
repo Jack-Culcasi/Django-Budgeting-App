@@ -40,6 +40,7 @@
                 <th>Name</th>
                 <th>Amount</th>
                 <th>Note</th>
+                <th></th>
             </tr>
         </thead>
         {% for pension in pensions %}
@@ -51,6 +52,14 @@
                 <td>{{ pension.name }}</td>
                 <td>{{ pension.amount }}</td>
                 <td>{{ pension.note }}</td>
+                <td>
+                    <form action="{% url 'pensions' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this pension?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-error" name="pension_id" value="{{ pension.id }}">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
+                </td>
             </tr>
         </tbody>
         {% endfor %}

@@ -38,7 +38,9 @@
       <thead>
         <tr>
           <th>Bank Name</th>
+          <th>Amount</th>
           <th>Note</th>
+          <th></th>
         </tr>
       </thead>
       {% for bank in banks %}
@@ -47,7 +49,16 @@
           <td>
             <a href="#" class="btn btn-outline">{{ bank.name }}</a>
           </td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ bank.amount }}</td>
           <td>{{ bank.note }}</td>
+          <td>
+            <form action="{% url 'banks' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this bank?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-error" name="bank_id" value="{{ bank.id }}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </td>
         </tr>
       </tbody>
       {% endfor %}

@@ -40,6 +40,7 @@
           <th>Latest amount</th>
           <th>Average amount</th>
           <th>Note</th>
+          <th></th>
         </tr>
       </thead>
       {% for fixed_cost in fixed_costs %}
@@ -52,6 +53,14 @@
           <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.average_amount }}</td>
           <td>{{ fixed_cost.note }}</td>
+          <td>
+            <form action="{% url 'fixed_costs' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this fixed cost?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-error" name="fixed_cost_id" value="{{ fixed_cost.id }}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </td>
         </tr>
       </tbody>
       {% endfor %}

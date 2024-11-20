@@ -31,7 +31,9 @@
       <thead>
         <tr>
           <th>Broker Name</th>
+          <th>Amount</th>
           <th>Note</th>
+          <th></th>
         </tr>
       </thead>
       {% for broker in brokers %}
@@ -40,7 +42,16 @@
           <td>
             <a href="#" class="btn btn-outline">{{ broker.name }}</a>
           </td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ broker.amount }}</td>
           <td>{{ broker.note }}</td>
+          <td>
+            <form action="{% url 'brokers' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this broker?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-error" name="broker_id" value="{{ broker.id }}">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </td>
         </tr>
       </tbody>
       {% endfor %}

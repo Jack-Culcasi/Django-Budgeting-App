@@ -63,7 +63,7 @@
             <a href="#" class="btn btn-outline">{{ investment.name }}</a>
           </td>
           <td>{{ investment.broker.name }}</td>
-          <td>{{ investment.amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ investment.amount }}</td>
           <td>{{ investment.note }}</td>
           <th>
             <form action="{% url 'investments' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this investment?');">
