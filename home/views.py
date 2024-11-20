@@ -560,7 +560,8 @@ def brokers(request):
             new_broker = Broker.objects.create(
                 user=request.user,
                 name=broker_name,
-                note=broker_note
+                note=broker_note,
+                amount=Decimal(0)
             )
 
     context = {
