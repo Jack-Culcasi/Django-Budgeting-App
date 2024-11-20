@@ -51,7 +51,7 @@
       <ul
         tabindex="0"
         class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50">
-        <li><a href="#option1">Settings</a></li>
+        <li><a href="{% url 'settings' %}">Settings</a></li>
         <li>
           <form action="{% url 'logout' %}" method="POST">
             {% csrf_token %}
