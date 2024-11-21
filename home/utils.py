@@ -1,6 +1,18 @@
 from .models import *
 from decimal import Decimal
 from django.utils.timezone import now
+import openpyxl
+
+def handle_uploaded_file(uploaded_file):
+    wb = openpyxl.load_workbook(uploaded_file)
+    sheet = wb.active
+    # Process rows and add data to your database
+    for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
+        # Example: assuming columns map to Payday model fields
+        date, amount, *other_fields = row
+        if date and amount:
+            Payday.objects.create(date=date, amount=amount)
+            # Add more logic for other fields if necessary
 
 def monthly_variable_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
