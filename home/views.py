@@ -7,10 +7,20 @@ from datetime import datetime, timedelta
 from .models import *
 from .utils import *
 from decimal import Decimal
+from .forms import UploadFileForm
 
 @login_required
 def settings(request):
-    return render(request, 'settings.html')
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = form.cleaned_data['file']
+            handle_uploaded_file(uploaded_file)
+            # Add a success message or redirect as needed
+    else:
+        form = UploadFileForm()
+    
+    return render(request, 'settings.html', {'form': form})
 
 @login_required
 def home(request):    
