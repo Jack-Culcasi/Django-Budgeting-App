@@ -2,17 +2,111 @@ from .models import *
 from decimal import Decimal
 from django.utils.timezone import now
 import openpyxl
+from datetime import datetime
 
-def handle_uploaded_file(uploaded_file):
+def delete_user_date(request):
+    user = request.user
+    try:
+        # Delete related objects in reverse order of dependency
+        NetWorth.objects.filter(user=user).delete()
+        #Pension.objects.filter(user=user).delete()
+        #Bank.objects.filter(user=user).delete()
+        #Investment.objects.filter(broker__user=user).delete()
+        #Broker.objects.filter(user=user).delete()
+        #FixedCosts.objects.filter(user=user).delete()
+        Transaction.objects.filter(user=user).delete()
+        #Category.objects.filter(user=user).delete()
+        MonthlyExpenses.objects.filter(payday__user=user).delete()
+        Payday.objects.filter(user=user).delete()
+        #UserPreferences.objects.filter(user=user).delete()
+
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False
+
+def handle_uploaded_file(uploaded_file, request):
     wb = openpyxl.load_workbook(uploaded_file)
     sheet = wb.active
     # Process rows and add data to your database
-    for row in sheet.iter_rows(min_row=2, values_only=True):  # Skip header
-        # Example: assuming columns map to Payday model fields
-        date, amount, *other_fields = row
-        if date and amount:
-            Payday.objects.create(date=date, amount=amount)
-            # Add more logic for other fields if necessary
+    for row in sheet.iter_rows(min_row=2, values_only=False):  # Skip the header
+        if len(row) == 10:  # Ensure there are exactly 10 columns
+            try:
+                # Get values from the cells
+                from_date = row[0].value
+                payday_date = row[1].value
+                payday_amount = row[2].value
+                networth_amount = row[3].value
+                savings_amount = row[4].value
+                utilities = row[5].value
+                groceries = row[6].value
+                misc = row[7].value
+                investments_amount = row[8].value
+                pension_amount = row[9].value
+
+                # Adjust date format
+                from_date = datetime.strptime(str(from_date).split()[0], "%Y-%m-%d")
+                payday_date = datetime.strptime(str(payday_date).split()[0], "%Y-%m-%d")
+                
+                # Extract comment
+                networth_note = row[3].comment.text if row[3].comment else ''
+                fixedcost_note = row[5].comment.text if row[5].comment else None
+                groceries_note = row[6].comment.text if row[6].comment else None
+                misc_note = row[7].comment.text if row[7].comment else ''
+                # Merge the notes
+                combined_note = f"{misc_note}\n{networth_note}".strip()
+
+                payday_obj = Payday.objects.create(
+                    user=request.user,
+                    payday_date=payday_date,
+                    amount=payday_amount
+                )
+                NetWorth.objects.create(
+                    user=request.user,
+                    payday=payday_obj,
+                    date=payday_date,
+                    total_savings=savings_amount,
+                    total_investments=investments_amount,
+                    total_pension=pension_amount,
+                    net_worth=networth_amount,
+                    note=combined_note
+                )
+                monthly_expenses = MonthlyExpenses.objects.create(
+                    payday=payday_obj,
+                    start_date=from_date,
+                    end_date=payday_date,
+                    utilities=utilities,
+                    groceries=groceries,
+                    misc=misc,
+                    amount=utilities + groceries
+                )
+                if not FixedCosts.objects.filter(user=request.user, name='Utilities').exists(): # Creates a category with same name but no ME
+                    FixedCosts.objects.create(
+                        user=request.user,
+                        name='Utilities',
+                        amount=0,
+                        note='Created after uploading xlsx file'
+                    )
+                FixedCosts.objects.create(
+                    user=request.user,
+                    monthly_expenses=monthly_expenses,
+                    name='Utilities',
+                    amount=utilities,
+                    note=fixedcost_note
+                )
+                Category.objects.create(
+                    user=request.user,
+                    monthly_expenses=monthly_expenses,
+                    name='Groceries',
+                    amount=groceries,
+                    note=groceries_note
+                )
+                
+            except Exception as e:
+                print(f"Error updating everything: {e}")
+
+        else:
+            print(f"Skipping row due to incorrect format: {row}")
 
 def monthly_variable_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
