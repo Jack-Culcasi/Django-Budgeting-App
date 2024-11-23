@@ -77,7 +77,7 @@
                     <td>
                       <input type="hidden" name="investment_id" value="{{ investment.id }}">
                       <input type="hidden" name="broker_id" value="{{ investment.broker.id }}">
-                      <input type="number" name="new_amount" value="{{ investment.amount }}" class="input w-full max-w-xs" />
+                      <input type="number" name="new_amount" value="{{ investment.amount }}" class="input w-full max-w-xs" step="0.01"/>
                     </td>
                     <td>{{ investment.broker.name }}</td>
                   </tr>

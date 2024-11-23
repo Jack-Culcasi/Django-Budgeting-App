@@ -76,7 +76,7 @@
                 <td>{{ bank.name }}</td>
                 <td>
                     <input type="hidden" name="bank_id" value="{{ bank.id }}">
-                    <input type="number" name="new_amount" value="{{ bank.amount }}" class="input w-full max-w-xs" />
+                    <input type="number" name="new_amount" value="{{ bank.amount }}" class="input w-full max-w-xs" step="0.01"/>
                 </td>
                 </tr>
                 {% endfor %}

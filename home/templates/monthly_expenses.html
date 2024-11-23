@@ -15,7 +15,7 @@
     <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Expenses</div>
-          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.amount }}</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ unt }}</div>
           <div class="stat-desc">21% more than last month</div>
         </div>
     </div>
@@ -77,7 +77,11 @@
                         <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
                         <td>{{ category.transactions_count }}</td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ category.difference_with_last_month|floatformat:2 }}</td>
-                        <td>{{ category.note }}</td>
+                        <td>
+                            {% if category.note %}
+                              <span title="{{ category.note }}">Note</span>
+                            {% endif %}
+                          </td>
                     </tr>
                 </tbody>
                 {% endfor %}
@@ -106,7 +110,11 @@
                         </td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.difference_with_last_month|floatformat:2 }}</td>
-                        <td>{{ fixed_cost.note }}</td>
+                        <td>
+                            {% if fixed_cost.note %}
+                              <span title="{{ fixed_cost.note }}">Note</span>
+                            {% endif %}
+                          </td>
                     </tr>
                 </tbody>
                 {% endfor %}

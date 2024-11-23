@@ -76,7 +76,7 @@
                 <td>{{ pension.name }}</td>
                 <td>
                     <input type="hidden" name="pension_id" value="{{ pension.id }}">
-                    <input type="number" name="new_amount" value="{{ pension.amount }}" class="input w-full max-w-xs" />
+                    <input type="number" name="new_amount" value="{{ pension.amount }}" class="input w-full max-w-xs" step="0.01" />
                 </td>
                 </tr>
                 {% endfor %}

@@ -52,7 +52,7 @@
                   <td>{{ fixed_cost.name }} {{ fixed_cost.monthly_expenses.id }}</td>
                   <td>
                     <input type="hidden" name="fixed_cost_id" value="{{ fixed_cost.id }}">
-                    <input type="number" name="new_amount" value="{{ fixed_cost.amount }}" class="input w-full max-w-xs" />
+                    <input type="number" name="new_amount" value="{{ fixed_cost.amount }}" class="input w-full max-w-xs" step="0.01" />
                   </td>
                 </tr>
                 {% endfor %}
