@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
-
+{% load humanize %}
 {% if payday_exists %}
 {% else %}
 <ul class="steps">
@@ -10,8 +10,14 @@
   <li class="step {% if steps_completed.add_fixed_cost %}step-primary{% endif %}">Add a Fixed Cost</li>
   <li class="step {% if steps_completed.add_investment %}step-primary{% endif %}">Add an Investment</li>
   <li class="step {% if steps_completed.add_categories %}step-primary{% endif %}">Add categories</li>
+  {% if  steps_completed.add_categories and steps_completed.add_investment %}
+  <li class="step">
+    <a href="{% url 'payday' %}" class="btn btn-primary">Add your first payday!</a>
+  </li>
+  {% else %}
   <li class="step">Add your first payday!</li>
-</ul>
+  {% endif %}
+</ul>  
 {% endif %}
 
 {% if payday_exists %}
@@ -21,15 +27,23 @@
     <div class="stats shadow">
       <div class="stat">
         <div class="stat-title">Net Worth</div>
-        <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ last_net_worth.net_worth }}</div>
+        <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ last_net_worth.net_worth|floatformat:2|intcomma }}</div>
         <div class="stat-desc">{{ last_net_worth.perc_diff_with_last_month }}% compared to last month</div>
+      </div>
+    </div>
+
+    <div class="stats shadow">
+      <div class="stat">
+        <div class="stat-title">Savings</div>
+        <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ last_net_worth.total_savings|floatformat:2|intcomma }}</div>
+        <div class="stat-desc">{{ last_net_worth.perc_diff_savings }}% compared to last month</div>
       </div>
     </div>
 
     <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Investments</div>
-          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_investments }}</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_investments|floatformat:2|intcomma }}</div>
           <div class="stat-desc">{{ last_net_worth.perc_diff_investments }}% compared to last month</div>
         </div>
       </div>
@@ -37,7 +51,7 @@
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Pension</div>
-          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_pensions }}</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ total_pensions|floatformat:2|intcomma }}</div>
           <div class="stat-desc">{{ last_net_worth.perc_diff_pensions }}% compared to last month</div>
         </div>
       </div>
@@ -45,43 +59,11 @@
       <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">PAC</div>
-          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ pac.amount }}</div>
+          <div class="stat-value">{{ user.userpreferences.currency_symbol }} {{ pac.amount|floatformat:2|intcomma }}</div>
           <div class="stat-desc"></div>
         </div>
       </div>
 </div>  
-
-{% else %}
-<br>
-<form id="first_time_buttons" method="POST" action="{% url 'first_time_buttons' %}"> <!-- To be removed -->
-  <div class="flex flex-col items-center justify-center">
-    <div class="flex flex-col items-center w-full max-w-xs mb-4">
-      {% csrf_token %}
-
-      {% if not steps_completed.add_bank %}
-      <a href="{% url 'banks' %}" class="btn btn-primary w-full h-12 mb-2">Add a Bank</a><br>
-      {% endif %}
-
-      {% if not steps_completed.add_broker %}
-      <a href="{% url 'brokers' %}" class="btn btn-primary w-full h-12 mb-2">Add a Broker</a><br>
-      {% endif %}
-
-      {% if not steps_completed.add_fixed_cost %}
-          <a href="{% url 'fixed_costs' %}" class="btn btn-primary w-full h-12 mb-2">Add a Fixed Cost</a><br>
-      {% endif %}
-
-      {% if not steps_completed.add_investment %}
-          <a href="{% url 'investments' %}" class="btn btn-primary w-full h-12 mb-2">Add an Investment</a><br>
-      {% endif %}
-
-      {% if not steps_completed.add_categories %}
-          <a href="{% url 'categories' %}" class="btn btn-primary w-full h-12 mb-2">Add Categories</a><br>
-      {% endif %}
-    </div>
-  </div>
-</form>
-
-{% endif %}
 <br>
 <!-- Charts  -->
 <div class="flex items-start justify-between">
@@ -124,10 +106,11 @@
             <!-- row 1 -->
             <tr>
               <th>{{ net_worth.payday.payday_date|date:"M-Y" }}</th>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.net_worth }}</td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_savings }}</td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_investments }} </td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_pension }} </td>
+              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.net_worth|floatformat:2|intcomma }}</td>
+              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_savings|floatformat:2|intcomma }}</td>
+              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_investments|floatformat:2|intcomma }}</td>
+              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_pension|floatformat:2|intcomma }}</td>
+              
             </tr>
           </tbody>
           {% endfor %}
@@ -141,6 +124,37 @@
   </div>  
 
 </div>
+{% else %}
+<br>
+<form id="first_time_buttons" method="POST" action="{% url 'first_time_buttons' %}"> <!-- To be removed -->
+  <div class="flex flex-col items-center justify-center">
+    <div class="flex flex-col items-center w-full max-w-xs mb-4">
+      {% csrf_token %}
+
+      {% if not steps_completed.add_bank %}
+      <a href="{% url 'banks' %}" class="btn btn-primary w-full h-12 mb-2">Add a Bank</a><br>
+      {% endif %}
+
+      {% if not steps_completed.add_broker %}
+      <a href="{% url 'brokers' %}" class="btn btn-primary w-full h-12 mb-2">Add a Broker</a><br>
+      {% endif %}
+
+      {% if not steps_completed.add_fixed_cost %}
+          <a href="{% url 'fixed_costs' %}" class="btn btn-primary w-full h-12 mb-2">Add a Fixed Cost</a><br>
+      {% endif %}
+
+      {% if not steps_completed.add_investment %}
+          <a href="{% url 'investments' %}" class="btn btn-primary w-full h-12 mb-2">Add an Investment</a><br>
+      {% endif %}
+
+      {% if not steps_completed.add_categories %}
+          <a href="{% url 'categories' %}" class="btn btn-primary w-full h-12 mb-2">Add Categories</a><br>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% endif %}
     
 
 <script>
@@ -161,46 +175,56 @@
   const investments = graphData.investments;
   const pension = graphData.pensions;
   const pac = graphData.pac;
+  const note = graphData.net_worth_notes;
 
-  // Create net_worth chart
-  const ctx = document.getElementById('netWorthChart').getContext('2d');
-  const netWorthChart = new Chart(ctx, {
-      type: 'line', // Line chart
-      data: {
-          labels: labels,
-          datasets: [{
-              label: 'Net Worth (£)',
-              data: dataValues,
-              borderColor: 'rgba(75, 192, 192, 1)',
-              backgroundColor: 'rgba(75, 192, 192, 0.2)',
-              borderWidth: 2,
-          }]
-      },
-      options: {
-          responsive: true,
-          plugins: {
-              legend: {
-                  display: true,
-                  position: 'top',
-              },
-          },
-          scales: {
-              x: {
-                  title: {
-                      display: true,
-                      text: 'Date',
-                  },
-              },
-              y: {
-                  title: {
-                      display: true,
-                      text: 'Net Worth (£)',
-                  },
-                  beginAtZero: true,
-              },
-          },
-      }
-  });
+// Create net_worth chart
+const ctx = document.getElementById('netWorthChart').getContext('2d');
+const netWorthChart = new Chart(ctx, {
+    type: 'line', // Line chart
+    data: {
+        labels: labels,  
+        datasets: [{
+            label: 'Net Worth (£)',
+            data: dataValues,  
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            tooltip: {
+                callbacks: {
+                    label: function(tooltipItem) {
+                        const index = tooltipItem.dataIndex;
+                        const note = graphData.net_worth_notes ? graphData.net_worth_notes[index] : '';
+                        return note ? `${tooltipItem.raw} - ${note}` : tooltipItem.raw;
+                    }
+                }
+            }
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+            },
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date',
+                },
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Net Worth (£)',
+                },
+                beginAtZero: true,
+            },
+        },
+    }
+});
 
   // Create net_worth chart
   const ctx_1 = document.getElementById('savingsChart').getContext('2d');
