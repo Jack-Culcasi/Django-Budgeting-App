@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load humanize %}
 <form method="post" action="{% url 'categories' %}">
 {% csrf_token %}
 <div class="flex flex-col items-center justify-center">
@@ -44,7 +45,7 @@
           </td>
           <td>{{ category.times_used }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ category.latest }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ category.average_amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ category.average_amount|floatformat:2|intcomma }}</td>
           <td>{{ category.note }}</td>
           <td>
             <form action="{% url 'categories' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this category? This will delete all category inistances named {{category.name}}');">
