@@ -8,27 +8,32 @@ from .models import *
 from .utils import *
 from decimal import Decimal
 from .forms import UploadFileForm
+from django.contrib import messages
 
 @login_required
 def settings(request):
     if request.method == 'POST':
+
+        if 'delete_data' in request.POST:
+            if delete_user_date(request):
+                messages.success(request, "Your data has been deleted successfully.")
+            else:
+                messages.error(request, "An error occurred while deleting your data. Please try again.")
+
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = form.cleaned_data['file']
-            handle_uploaded_file(uploaded_file)
-            # Add a success message or redirect as needed
+            handle_uploaded_file(uploaded_file, request)
+            
     else:
         form = UploadFileForm()
     
     return render(request, 'settings.html', {'form': form})
 
 @login_required
-def home(request):    
-    if NetWorth.objects.filter(user=request.user).exists():
-        net_worth = NetWorth.objects.filter(user=request.user).latest('date')
-    else:
-        net_worth = 0  # Handle the case when no record exists
-
+def home(request):   
+    # Determine to show the completion bar 
+    payday_exists = request.user.paydays.exists() 
     # Determine completion based on existing data for each step
     steps_completed = {
         "account_created": True,
@@ -38,78 +43,75 @@ def home(request):
         "add_investment": request.user.brokers.filter(investments__isnull=False).exists(),
         "add_categories": request.user.category_set.exists(),
     }
-    payday_exists = request.user.paydays.exists() # Determine to show the completion bar
+    # If no payday/networth record
+    if NetWorth.objects.filter(user=request.user).exists(): 
+        net_worth = NetWorth.objects.filter(user=request.user).latest('date')
+        transactions = Transaction.objects.filter(user=request.user)
+        monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
+        paydays = Payday.objects.filter(user=request.user)
+        user_preferences = UserPreferences.objects.filter(user=request.user)
+        categories = Category.objects.filter(user=request.user)
+        fixed_costs = FixedCosts.objects.filter(user=request.user)
+        brokers = Broker.objects.filter(user=request.user)
+        banks = Bank.objects.filter(user=request.user)
+        pensions = Pension.objects.filter(user=request.user)
+        last_net_worth = NetWorth.objects.filter(user=request.user).order_by('-date').first()
+        investments = Investment.objects.filter(broker__user=request.user)
+        pac = Investment.objects.get(broker__user=request.user, name='PAC')
+        # Data for graph
+        net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
+        # Extract dates and net worth values for chart
+        dates = [net_worth.date.strftime('%m-%Y') for net_worth in net_worths]
+        net_worth_values = [net_worth.net_worth for net_worth in net_worths]
+        # Extract total_savings for chart
+        savings_values = [net_worth.total_savings for net_worth in net_worths]
+        # Extract total_investments for chart
+        investments_values = [net_worth.total_investments for net_worth in net_worths]
+        # Extract expenses for chart
+        expenses_values = [net_worth.payday.get_expenses().amount for net_worth in net_worths]
+        # Extract investments excluding PAC
+        investments_no_pac = last_net_worth.total_investments - pac.amount
+        # net worth notes
+        net_worth_notes = [net_worth.note for net_worth in net_worths]
+        graph_data = {
+            'dates': dates,
+            'net_worth_values': net_worth_values,
+            'savings_values': savings_values,
+            'investments_values': investments_values,
+            'expenses_values':expenses_values,
+            'savings': last_net_worth.total_savings,
+            'investments': investments_no_pac ,
+            'pensions': last_net_worth.total_pension,
+            'pac': pac.amount,
+            'net_worth_notes':net_worth_notes
+        }
 
-    # Temporary
-    '''Transaction.objects.all().delete()
-    MonthlyExpenses.objects.all().delete()
-    Payday.objects.all().delete()
-    #Category.objects.all().delete()
-    #FixedCosts.objects.all().delete()
-    #Broker.objects.all().delete()
-    #Bank.objects.all().delete()
-    #Pension.objects.all().delete()
-    NetWorth.objects.all().delete()'''
+        context = {
+        'last_net_worth': last_net_worth,
+        'transactions': transactions,
+        'paydays': paydays,
+        'monthly_expenses': monthly_expenses,
+        'user_preferences': user_preferences,
+        'categories': categories,
+        'fixed_costs': fixed_costs,
+        'brokers': brokers,
+        'banks': banks,
+        'pensions': pensions,
+        'investments': investments,
+        'total_investments': get_total_investments(request),
+        'total_pensions': get_total_pensions(request),
+        'payday_exists': payday_exists,
+        'pac': pac,
+        'graph_data': graph_data,
+        'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
+        }   
+    else:
+        context = {
+            'steps_completed': steps_completed,
+            'payday_exists': payday_exists,
+        }
+        net_worth = 0  # Handle the case when no record exists     
 
-    transactions = Transaction.objects.filter(user=request.user)
-    monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
-    paydays = Payday.objects.filter(user=request.user)
-    user_preferences = UserPreferences.objects.filter(user=request.user)
-    categories = Category.objects.filter(user=request.user)
-    fixed_costs = FixedCosts.objects.filter(user=request.user)
-    brokers = Broker.objects.filter(user=request.user)
-    banks = Bank.objects.filter(user=request.user)
-    pensions = Pension.objects.filter(user=request.user)
-    last_net_worth = NetWorth.objects.filter(user=request.user).order_by('-date').first()
-    investments = Investment.objects.filter(broker__user=request.user)
-    pac = Investment.objects.get(broker__user=request.user, name='PAC')
-    # Data for graph
-    net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
-    # Extract dates and net worth values for chart
-    dates = [net_worth.date.strftime('%m-%Y') for net_worth in net_worths]
-    net_worth_values = [net_worth.net_worth for net_worth in net_worths]
-    # Extract total_savings for chart
-    savings_values = [net_worth.total_savings for net_worth in net_worths]
-    # Extract total_investments for chart
-    investments_values = [net_worth.total_investments for net_worth in net_worths]
-    # Extract expenses for chart
-    expenses_values = [net_worth.payday.get_expenses().amount for net_worth in net_worths]
-    # Extract investments excluding PAC
-    investments_no_pac = last_net_worth.total_investments - pac.amount
-    
-    graph_data = {
-        'dates': dates,
-        'net_worth_values': net_worth_values,
-        'savings_values': savings_values,
-        'investments_values': investments_values,
-        'expenses_values':expenses_values,
-        'savings': last_net_worth.total_savings,
-        'investments': investments_no_pac ,
-        'pensions': last_net_worth.total_pension,
-        'pac': pac.amount,
-    }
-   
-    context = {
-    'last_net_worth': last_net_worth,
-    'transactions': transactions,
-    'paydays': paydays,
-    'monthly_expenses': monthly_expenses,
-    'user_preferences': user_preferences,
-    'categories': categories,
-    'fixed_costs': fixed_costs,
-    'brokers': brokers,
-    'banks': banks,
-    'pensions': pensions,
-    'investments': investments,
-    'steps_completed': steps_completed,
-    'payday_exists': payday_exists,
-    'total_investments': get_total_investments(request),
-    'total_pensions': get_total_pensions(request),
-    'pac': pac,
-    'graph_data': graph_data,
-    'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
-    }   
-    
     return render(request, 'home.html', context)
 
 @login_required
@@ -125,7 +127,7 @@ def payday(request):
             
     except IndexError: # Not enough paydays to create MonthlyExpenses
         last_two_paydays = None
-
+    print(not last_two_paydays)
     if request.method == 'POST':
         # Get the form data
         amount = Decimal(request.POST.get('amount'))
@@ -141,13 +143,16 @@ def payday(request):
             note=note
         )
         # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
+        print(not last_two_paydays)
         if not last_two_paydays:
+            print('if not last_two_paydays')
             monthly_expense = MonthlyExpenses.objects.create(
             payday=payday,
             start_date=start_date,
             end_date=payday_date - timedelta(days=1)
             )
         else:
+            print('else')
             last_two_paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:2]
             # Create the MonthlyExpenses object for the previous month, 
             # the start date is related to the payday date of the previous month, the end date is the last payday date minus one day.
