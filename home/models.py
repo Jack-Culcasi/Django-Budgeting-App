@@ -81,9 +81,12 @@ class Category(models.Model):
         return len(all_categories)
 
     def average_amount(self):
-        all_categories = Category.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
-        category_average_amount = sum(category.amount for category in all_categories) / len(all_categories)
-        return category_average_amount
+        try:
+            all_categories = Category.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False)
+            category_average_amount = sum(category.amount for category in all_categories) / len(all_categories)
+            return category_average_amount
+        except:
+            return 0
     
     def latest(self):
         try:
@@ -229,8 +232,8 @@ class NetWorth(models.Model):
                 percentage_change = (difference / previous_net_worth.net_worth) * 100
                 return round(percentage_change, 2) 
             except ZeroDivisionError:
-                return None  # Handle case where the previous net worth is zero
-        return None  # Return None if no previous record exists
+                return 0  # Handle case where the previous net worth is zero
+        return 0  # Return None if no previous record exists
     
     def perc_diff_investments(self):
         previous_net_worth = (
@@ -244,7 +247,7 @@ class NetWorth(models.Model):
             return round(percentage_change, 2) 
         except Exception as e:
             print(f"Error perc_diff_investments: {e}")
-            return None
+            return 0
         
     def perc_diff_pensions(self):
         previous_net_worth = (
@@ -257,5 +260,19 @@ class NetWorth(models.Model):
             percentage_change = (difference / previous_net_worth.total_pension) * 100
             return round(percentage_change, 2) 
         except Exception as e:
-            print(f"Error perc_diff_investments: {e}")
-            return None
+            print(f"Error perc_diff_pensions: {e}")
+            return 0
+        
+    def perc_diff_savings(self):
+        previous_savings = (
+            NetWorth.objects.filter(user=self.user, date__lt=self.date)
+            .order_by('-date')
+            .first()
+        )
+        try:
+            difference = self.total_savings - previous_savings.total_savings
+            percentage_change = (difference / previous_savings.total_savings) * 100
+            return round(percentage_change, 2) 
+        except Exception as e:
+            print(f"Error perc_diff_savings: {e}")
+            return 0
