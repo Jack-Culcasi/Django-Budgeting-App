@@ -73,6 +73,8 @@ def home(request):
         investments_no_pac = last_net_worth.total_investments - pac.amount
         # net worth notes
         net_worth_notes = [net_worth.note for net_worth in net_worths]
+        # Monthly expenses notes
+        monthly_expenses_notes = [monthly_expense.note for monthly_expense in monthly_expenses]
         graph_data = {
             'dates': dates,
             'net_worth_values': net_worth_values,
@@ -83,7 +85,8 @@ def home(request):
             'investments': investments_no_pac ,
             'pensions': last_net_worth.total_pension,
             'pac': pac.amount,
-            'net_worth_notes':net_worth_notes
+            'net_worth_notes': net_worth_notes,
+            'monthly_expenses_notes': monthly_expenses_notes
         }
 
         context = {
@@ -143,16 +146,13 @@ def payday(request):
             note=note
         )
         # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
-        print(not last_two_paydays)
         if not last_two_paydays:
-            print('if not last_two_paydays')
             monthly_expense = MonthlyExpenses.objects.create(
             payday=payday,
             start_date=start_date,
             end_date=payday_date - timedelta(days=1)
             )
         else:
-            print('else')
             last_two_paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:2]
             # Create the MonthlyExpenses object for the previous month, 
             # the start date is related to the payday date of the previous month, the end date is the last payday date minus one day.
@@ -273,7 +273,7 @@ def delete_transaction(request):
 
 @login_required
 def paydays(request):
-    paydays = Payday.objects.filter(user=request.user)
+    paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:12] # Only show last 12 months paydays
     monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
 
     context = {
@@ -608,3 +608,31 @@ def pensions(request):
         'pensions': pensions,
     }
     return render(request, 'pensions.html', context)
+
+def category(request, category_name):
+    # Charts data
+    user_categories = Category.objects.filter(user=request.user, name=category_name).exclude(monthly_expenses__isnull=True)
+    categories_notes = [category.note for category in user_categories]
+    categories_dates = [category.monthly_expenses.end_date.strftime('%m-%Y') for category in user_categories]
+    categories_values = [category.amount for category in user_categories]
+    user_monthly_expenses = [category.monthly_expenses for category in user_categories]
+    utilities_values = [monthly_expenses.utilities for monthly_expenses in user_monthly_expenses]
+    expenses_value = [monthly_expenses.amount for monthly_expenses in user_monthly_expenses]
+    expenses_note = [monthly_expenses.note for monthly_expenses in user_monthly_expenses]
+    graph_data = {
+        'categories_dates': categories_dates,
+        'categories_values': categories_values,
+        'utilities_values': utilities_values,
+        'expenses_value': expenses_value,
+        'categories_notes': categories_notes,
+        'expenses_note': expenses_note
+    }
+
+
+
+    context = {
+        'graph_data': graph_data,
+        'user_categories': user_categories,
+    }
+
+    return render(request, 'category.html', context)
