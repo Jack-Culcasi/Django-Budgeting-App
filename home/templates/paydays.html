@@ -32,7 +32,11 @@
           <td>
             {{ payday.monthly_expenses.first.end_date|date:"M. j, Y" }}
           </td>
-          <td>{{ payday.note }}</td>
+          <td>
+            {% if payday.note %}
+              <span title="{{ payday.note }}">Note</span>
+            {% endif %}
+          </td>
           <td>
             <form action="{% url 'delete_payday' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this payday?');">
               {% csrf_token %}
