@@ -46,4 +46,5 @@ urlpatterns = [
     path('brokers/', views.brokers, name='brokers'),
     path('investments/', views.investments, name='investments'),
     path('pensions/', views.pensions, name='pensions'),
+    path('category/<str:category_name>/', views.category, name='category')
 ]
