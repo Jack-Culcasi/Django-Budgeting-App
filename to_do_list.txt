@@ -2,8 +2,11 @@
 - <meta> tag with token needs to be fixed
 - Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add Upload CSV file from bank statement and old spreadsheet
-- Pages like Paydays should have a search algorithm and max 10 results per page
+- Pages like Paydays should have a search algorithm and max 10 results per page and a page for individual instance with graphs
 - Add alert and succes messagges
+- Add button to go back (i.e. in Paydays)
+- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC
+- Give chance to add notes around
 
 - Dove ho lasciato: 
-        - Note aggiunge su grafico net worth
+        - Grafico category aggiunto
