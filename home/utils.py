@@ -50,11 +50,11 @@ def handle_uploaded_file(uploaded_file, request):
                 
                 # Extract comment
                 networth_note = row[3].comment.text if row[3].comment else ''
-                fixedcost_note = row[5].comment.text if row[5].comment else None
-                groceries_note = row[6].comment.text if row[6].comment else None
+                fixedcost_note = row[5].comment.text if row[5].comment else ''
+                groceries_note = row[6].comment.text if row[6].comment else ''
                 misc_note = row[7].comment.text if row[7].comment else ''
                 # Merge the notes
-                combined_note = f"{misc_note}\n{networth_note}".strip()
+                combined_note = f"{misc_note}\n{fixedcost_note}\n{groceries_note}".strip()
 
                 payday_obj = Payday.objects.create(
                     user=request.user,
@@ -69,7 +69,7 @@ def handle_uploaded_file(uploaded_file, request):
                     total_investments=investments_amount,
                     total_pension=pension_amount,
                     net_worth=networth_amount,
-                    note=combined_note
+                    note=networth_note
                 )
                 monthly_expenses = MonthlyExpenses.objects.create(
                     payday=payday_obj,
@@ -78,7 +78,8 @@ def handle_uploaded_file(uploaded_file, request):
                     utilities=utilities,
                     groceries=groceries,
                     misc=misc,
-                    amount=utilities + groceries
+                    amount=utilities + groceries + misc,
+                    note=combined_note
                 )
                 if not FixedCosts.objects.filter(user=request.user, name='Utilities').exists(): # Creates a category with same name but no ME
                     FixedCosts.objects.create(
