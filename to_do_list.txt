@@ -3,7 +3,7 @@
 - Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add Upload CSV file from bank statement and old spreadsheet
 - Pages like Paydays should have a search algorithm and max 10 results per page
-- Check last_month differences in class methods
+- Add alert and succes messagges
 
 - Dove ho lasciato: 
-        - Settings page
+        - Note aggiunge su grafico net worth
