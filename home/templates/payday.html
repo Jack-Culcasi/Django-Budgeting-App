@@ -1,75 +1,80 @@
 {% extends "index.html" %}
 {% block start %}
+  {% if request.user.banks.exists and request.user.fixedcosts_set.exists and request.user.category_set.exists %}
 
-<ul class="steps">
-  <li class="step step-primary">Payday</li>
-  <li class="step">Variable Costs</li>
-  <li class="step">Fixed Costs</li>
-  <li class="step">Deductions</li>
-  <li class="step">Investments</li>
-  <li class="step">Pension</li>
-  <li class="step">Savings</li>
-  <li class="step">Review</li>
-</ul>
-<br>
-<form method="post" action="{% url 'payday' %}">
-  {% csrf_token %}
-  <div class="flex items-center justify-center">
-      <div class="flex flex-col">
-          <h1 class="mb-4">Hooray!</h1>
+    <ul class="steps">
+      <li class="step step-primary">Payday</li>
+      <li class="step">Variable Costs</li>
+      <li class="step">Fixed Costs</li>
+      <li class="step">Deductions</li>
+      <li class="step">Investments</li>
+      <li class="step">Pension</li>
+      <li class="step">Savings</li>
+      
+    </ul>
+    <br>
+    <form method="post" action="{% url 'payday' %}">
+      {% csrf_token %}
+      <div class="flex items-center justify-center">
+          <div class="flex flex-col">
+              <h1 class="mb-4">Hooray!</h1>
 
-          <label class="form-control w-full max-w-xs">
-              <div class="label">
-                <span class="label-text">How much did you earn?</span>
+              <label class="form-control w-full max-w-xs">
+                  <div class="label">
+                    <span class="label-text">How much did you earn?</span>
+                  </div>
+                  <input type="number" name="amount" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs" required />
+              </label>
+
+              <label class="form-control w-full max-w-xs">
+                <div class="label">
+                  <span class="label-text">When?</span>
+                </div>
+                <input type="date" name="date" class="input input-bordered w-full max-w-xs" value="{{ today_date }}" required />
+              </label>
+
+              {% if not last_two_paydays %}
+              <br>
+              <div role="alert" class="alert">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  class="stroke-info h-6 w-6 shrink-0">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>There aren't enough paydays</span>
               </div>
-              <input type="number" name="amount" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs" required />
-          </label>
 
-          <label class="form-control w-full max-w-xs">
-            <div class="label">
-              <span class="label-text">When?</span>
-            </div>
-            <input type="date" name="date" class="input input-bordered w-full max-w-xs" value="{{ today_date }}" required />
-          </label>
+              <!-- Date Input Form -->
+              <label class="form-control w-full max-w-xs">
+                <div class="label">
+                  <span class="label-text">Insert a start date for the monthly expenses</span>
+                </div>
+                <input type="date" name="start_date" class="input input-bordered w-full max-w-xs" placeholder="{{ today_date }}" required />
+              </label>
+                            
+              {% endif %}
 
-          {% if not last_two_paydays %}
-          <br>
-          <div role="alert" class="alert">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              class="stroke-info h-6 w-6 shrink-0">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>There aren't enough paydays</span>
+              <label class="form-control">
+                <div class="label">
+                  <span class="label-text">Anything to declare?</span>
+                </div>
+                <textarea class="textarea textarea-bordered h-24" name="note" placeholder="Beside happyness"></textarea>
+              </label>
+
+              <!-- Submit button -->
+              <button type="submit" class="btn btn-primary mt-4">Let's go</button>
           </div>
-
-          <!-- Date Input Form -->
-          <label class="form-control w-full max-w-xs">
-            <div class="label">
-              <span class="label-text">Insert a start date for the monthly expenses</span>
-            </div>
-            <input type="date" name="start_date" class="input input-bordered w-full max-w-xs" placeholder="{{ today_date }}" required />
-          </label>
-                        
-          {% endif %}
-
-          <label class="form-control">
-            <div class="label">
-              <span class="label-text">Anything to declare?</span>
-            </div>
-            <textarea class="textarea textarea-bordered h-24" name="note" placeholder="Beside happyness"></textarea>
-          </label>
-
-          <!-- Submit button -->
-          <button type="submit" class="btn btn-primary mt-4">Let's go</button>
       </div>
-  </div>
-</form>
+    </form>
+
+  {% else %}
+    <h1>Please add a bank, fixed cost and category first.</h1>
+  {% endif %}
 
 {% endblock %}
