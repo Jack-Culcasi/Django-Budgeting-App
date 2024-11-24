@@ -46,5 +46,6 @@ urlpatterns = [
     path('brokers/', views.brokers, name='brokers'),
     path('investments/', views.investments, name='investments'),
     path('pensions/', views.pensions, name='pensions'),
-    path('category/<str:category_name>/', views.category, name='category')
+    path('category/<str:category_name>/', views.category, name='category'),
+    path('transactions/<int:payday_id>/<int:monthly_expense_id>/', views.transactions, name='transactions')
 ]
