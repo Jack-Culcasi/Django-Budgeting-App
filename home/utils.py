@@ -3,6 +3,8 @@ from decimal import Decimal
 from django.utils.timezone import now
 import openpyxl
 from datetime import datetime
+import csv
+from io import TextIOWrapper
 
 def delete_user_date(request):
     user = request.user
@@ -24,6 +26,27 @@ def delete_user_date(request):
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
+
+def handle_csv_file(request, csv_file, monthly_expenses):
+    csv_reader = csv.DictReader(TextIOWrapper(csv_file.file, encoding='utf-8'))
+    try:
+        for row in csv_reader:
+            transaction_type = row['Transaction Type']
+            if transaction_type == 'Purchase':
+                description = row['Transaction Description']
+                amount = Decimal(row['Amount'])
+                # Create Transaction
+                new_transaction = Transaction.objects.create(
+                    user=request.user,
+                    monthly_expenses=monthly_expenses,
+                    amount=abs(amount),
+                    note=description
+                )
+      
+        return True
+    except:
+        return False
+
 
 def handle_uploaded_file(uploaded_file, request):
     wb = openpyxl.load_workbook(uploaded_file)
