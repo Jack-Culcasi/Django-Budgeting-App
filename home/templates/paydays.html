@@ -1,5 +1,106 @@
 {% extends "index.html" %}
 {% block start %}
+<form method="post" action="{% url 'paydays' %}">
+  {% csrf_token %}
+<div class="flex flex-col items-center justify-center">
+  <!-- Main Label -->
+  <div class="flex flex-col items-center w-full max-w-xs mb-4">
+    <label class="form-control w-full">
+      <div class="label">
+        <span class="label-text">Looking for a payday?</span>
+      </div>
+    </label>
+
+    <!-- Search Type Dropdown -->
+    <select
+      id="searchTypeDropdown"
+      class="select select-primary w-full max-w-xs mb-2"
+      onchange="toggleSelection()"
+    >
+      <option disabled selected>Search by</option>
+      <option value="date">Date</option>
+      <option value="note">Note</option>
+    </select>
+
+    <!-- Month and Year Selections -->
+    <div id="dateSelection" class="flex space-x-4 hidden">
+      <!-- Month Label and Dropdown -->
+      <div class="flex flex-col items-start">
+        <label class="label">
+          <span class="label-text">Select Month</span>
+        </label>
+        <select class="select select-primary w-full max-w-xs" name="month">
+          <option disabled selected>Month</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+        </select>
+      </div>
+
+      <!-- Year Label and Dropdown -->
+      <div class="flex flex-col items-start">
+        <label class="label">
+          <span class="label-text">Select Year</span>
+        </label>
+        <select class="select select-primary w-full max-w-xs" name="year">
+          <option disabled selected>Year</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+          <option value="2026">2026</option>
+          <option value="2027">2027</option>
+        </select>
+      </div>
+      <div class="flex flex-col items-start">
+        <label class="label">
+          <span class="label-text"></span>
+        </label>
+        <button type="submit" class="btn btn-primary mt-4">Search</button>
+      </div>
+    </div>
+
+    <!-- Text Area for Note -->
+    <div id="noteSelection" class="flex flex-col items-start hidden">
+      <label class="label">
+        <span class="label-text">Enter Note</span>
+      </label>
+      <textarea class="textarea textarea-primary w-full max-w-xs" placeholder="Enter your note here" name="note"></textarea>
+      <button type="submit" class="btn btn-primary mt-4">Search</button>
+    </div>
+
+    <!-- Search Button -->
+    
+  </div>
+</div>
+</form>
+
+<script>
+  function toggleSelection() {
+    const dropdown = document.getElementById('searchTypeDropdown');
+    const dateSelection = document.getElementById('dateSelection');
+    const noteSelection = document.getElementById('noteSelection');
+
+    if (dropdown.value === 'date') {
+      dateSelection.classList.remove('hidden');
+      noteSelection.classList.add('hidden');
+    } else if (dropdown.value === 'note') {
+      noteSelection.classList.remove('hidden');
+      dateSelection.classList.add('hidden');
+    } else {
+      dateSelection.classList.add('hidden');
+      noteSelection.classList.add('hidden');
+    }
+  }
+</script>
 
 <div class="overflow-x-auto">
     <table class="table">
