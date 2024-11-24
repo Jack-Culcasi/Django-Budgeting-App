@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load static %}
 
 <ul class="steps">
     <li class="step step-primary">Payday</li>
@@ -33,63 +34,86 @@
       </div>
 </div>  
 <form method="post" action="{% url 'deductions' payday_id=payday.id monthly_expense_id=monthly_expense_id %}">
-    {% csrf_token %}
-    <div class="flex items-center justify-center">
-        <div class="flex flex-col">
-            <label class="form-control w-full max-w-xs">
-                <div class="label">
-                  <span class="label-text">Deduction amount</span>
-                </div>
-                <input type="number" name="deduction_amounts" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs"/>
-            </label>
-            <br>
-            <p>Deduct whole or splitted categories and fixed costs:</p>
-            <div class="overflow-x-auto">
-                <table class="table">
-                <!-- head -->
-                <thead>
-                    <tr>
-                    <th></th>
-                    <th></th>
-                    <th>Deduct</th>
-                    <th>Split</th>
-                    </tr>
-                </thead>
-                {% for fixed_cost in fixed_costs %}
-                <tbody>
-                    <tr>
-                    <th>{{ fixed_cost.name }}</th>
-                    <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
-                    <td>
-                        <input type="checkbox" class="checkbox" name="full_cost" id="full_cost" value="{{ fixed_cost.amount }}" />
-                    </td>
-                    <td>
-                        <input type="checkbox" class="checkbox" name="split_cost" id="split_cost" value="{{ fixed_cost.amount }}" />
-                    </td>
-                    </tr>
-                </tbody>
-                {% endfor %}
-                {% for category in categories %}
-                <tbody>
-                    <tr>
-                    <th>{{ category.name }}</th>
-                    <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
-                    <td>
-                        <input type="checkbox" class="checkbox" name="full_cost" id="full_cost" value="{{ category.amount }}" />
-                    </td>
-                    <td>
-                        <input type="checkbox" class="checkbox" name="split_cost" id="split_cost" value="{{ category.amount }}" />
-                    </td>
-                    </tr>
-                </tbody>
-                {% endfor %}
-                </table>
-            </div> 
-  
-            <!-- Submit button -->
-            <button type="submit" class="btn btn-primary mt-4">Go to Investments</button>
-        </div>
-    </div>
-  </form>
+  {% csrf_token %}
+  <div class="flex items-center justify-center">
+      <div class="flex flex-col">
+          <label class="form-control w-full max-w-xs">
+              <div class="label">
+                <span class="label-text">Deduction amount</span>
+              </div>
+              <input type="number" name="deduction_amounts" placeholder="{{ user.userpreferences.currency_symbol }} 0.00" class="input input-bordered w-full max-w-xs"/>
+          </label>
+          <br>
+          <p>Deduct whole or split categories and fixed costs:</p>
+          <div class="overflow-x-auto">
+              <table class="table">
+              <!-- head -->
+              <thead>
+                  <tr>
+                      <th></th>
+                      <th></th>
+                      <th>Deduct</th>
+                      <th>Split</th>
+                  </tr>
+              </thead>
+              {% for fixed_cost in fixed_costs %}
+              <tbody>
+                  <tr>
+                      <th>{{ fixed_cost.name }}</th>
+                      <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+                      <td>
+                          <input 
+                              type="checkbox" 
+                              class="checkbox full-cost" 
+                              name="full_cost" 
+                              data-row="{{ forloop.counter }}" 
+                              value="{{ fixed_cost.amount }}" />
+                      </td>
+                      <td>
+                          <input 
+                              type="checkbox" 
+                              class="checkbox split-cost" 
+                              name="split_cost" 
+                              data-row="{{ forloop.counter }}" 
+                              value="{{ fixed_cost.amount }}" />
+                      </td>
+                  </tr>
+              </tbody>
+              {% endfor %}
+              {% for category in categories %}
+              <tbody>
+                  <tr>
+                      <th>{{ category.name }}</th>
+                      <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
+                      <td>
+                          <input 
+                              type="checkbox" 
+                              class="checkbox full-cost" 
+                              name="full_cost" 
+                              data-row="{{ forloop.counter }}" 
+                              value="{{ category.amount }}" />
+                      </td>
+                      <td>
+                          <input 
+                              type="checkbox" 
+                              class="checkbox split-cost" 
+                              name="split_cost" 
+                              data-row="{{ forloop.counter }}" 
+                              value="{{ category.amount }}" />
+                      </td>
+                  </tr>
+              </tbody>
+              {% endfor %}
+              </table>
+          </div> 
 
+          <!-- Submit button -->
+          <button type="submit" class="btn btn-primary mt-4">Go to Investments</button>
+      </div>
+  </div>
+</form>
+
+{% block script %}
+<script src="{% static 'js/deductions.js' %}"></script>
+{% endblock %}
 {% endblock %}
