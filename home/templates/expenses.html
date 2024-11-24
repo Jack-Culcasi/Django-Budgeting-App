@@ -8,8 +8,7 @@
     <li class="step">Deductions</li>
     <li class="step">Investments</li>
     <li class="step">Pension</li>
-    <li class="step">Savings</li>
-    
+    <li class="step">Savings</li>    
 </ul>
 <br>
 <div class="flex items-center justify-between">
@@ -54,8 +53,21 @@
 
     <!-- Display Transactions -->
     <div class="w-1/2">
+        <!-- upload.html -->
+    <h3>Upload a CSV file</h3>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}        
+        <div class="flex items-center gap-2 mt-4">
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Upload</button>
+            <span id="loadingSpinner" class="loading loading-spinner text-primary hidden"></span>
+        </div>
+    </form>
+
+        <br>
         <div id="transactions-container">
             <div class="overflow-x-auto">
+                <h3>Transactions</h3>
                 <table class="table">
                     <thead>
                         <tr>

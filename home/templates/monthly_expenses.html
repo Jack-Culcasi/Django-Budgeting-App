@@ -1,9 +1,10 @@
 {% extends "index.html" %}
 {% block start %}
-
+<div class="flex justify-center space-x-10">
+    <h3>From {{ monthly_expenses.start_date }} to {{ monthly_expenses.end_date }}</h3>
+</div>
 <br>
 <div class="flex justify-center space-x-10">
-
     <div class="stats shadow">
       <div class="stat">
         <div class="stat-title">Salary</div>
@@ -15,7 +16,7 @@
     <div class="stats shadow">
         <div class="stat">
           <div class="stat-title">Expenses</div>
-          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ unt }}</div>
+          <div class="stat-value">- {{ user.userpreferences.currency_symbol }} {{ monthly_expenses.amount }}</div>
           <div class="stat-desc">21% more than last month</div>
         </div>
     </div>
@@ -57,7 +58,7 @@
     <!-- Left table -->
     <div class="flex flex-col items-right w-1/2">
         <div class="overflow-x-auto">
-            <h1>Categories</h1>
+            <h3>Categories</h3>
             <table class="table">
                 <thead>
                     <tr>
@@ -92,7 +93,7 @@
     <!-- Right table -->
     <div class="flex flex-col items-left w-1/2">
         <div class="overflow-x-auto">
-            <h1>Fixed Costs</h1>
+            <h3>Fixed Costs</h3>
             <table class="table">
                 <thead>
                     <tr>
@@ -124,7 +125,7 @@
 </div>
 <br>
 <div class="flex flex-col items-center">
-    <h1>Transactions</h1>
+    <h3>Transactions</h3>
 </div>
 <br>
 <div>
@@ -145,7 +146,7 @@
                 </td>
                 <td>{{ user.userpreferences.currency_symbol }} {{ transaction.amount }}</td>
                 <td>{{ transaction.category.name }}</td>
-                <td>{{ fixed_cost.note }}</td>
+                <td>{{ transaction.note }}</td>
             </tr>
         </tbody>
         {% endfor %}

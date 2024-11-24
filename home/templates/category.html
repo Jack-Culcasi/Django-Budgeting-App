@@ -1,6 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
-{% load static %}
+{% load static %}  
 {% if messages %}
     <div>
         {% for message in messages %}
@@ -11,42 +11,39 @@
     </div>
 {% endif %}
 
-
 <div class="flex items-start justify-between">
-    <div class="flex flex-col items-center w-1/2">
-        <canvas id="categoryChart" width="800" height="400">{{ graph_data|json_script:"graph-data" }}</canvas>   
-        <table class="table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Note</th>
-              </tr>
-            </thead>
-            {% for category in user_categories %}
-            <tbody>
-              <tr>
-                <td>{{ category.monthly_expenses.end_date|date:"M Y" }}</td>
-                <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
-                <td>{{ user.userpreferences.currency_symbol }} {{ category.latest }}</td>
-                <td>
-                  {% if category.note %}
-                    <span title="{{ category.note }}">Note</span>
-                  {% endif %}
-                </td>
-              </tr>
-            </tbody>
-            {% endfor %}
-          </table>
-    </div>
+  <div class="flex flex-col items-center w-1/2">
+    <canvas id="categoryChart" width="800" height="400">{{ graph_data|json_script:"graph-data" }}</canvas> 
+    <h3><b>{{ category_name }}</b></h3>  
+    <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in sorted_user_categories %}
+          <tr class="{% if forloop.counter > 12 %}hidden-row{% endif %}">
+            <td>{{ category.monthly_expenses.end_date|date:"M Y" }}</td>
+            <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
+            <td>
+              {% if category.note %}
+                <span title="{{ category.note }}">Note</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    <button id="showMoreButton" class="btn btn-primary mt-4">Show More</button>
+</div>
   
     <div class="w-1/2">    
         <canvas id="mixedChart" width="800" height="400">{{ graph_data|json_script:"graph-data" }}</canvas>  
     </div>    
-</div>
- 
-<div class="overflow-x-auto">
-    
+
 </div>
 
 
