@@ -187,8 +187,10 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
 
     if request.method == 'POST':
+        print('post')
         form = CSVUploadForm(request.POST, request.FILES)
         if form.is_valid():
+            print('valid')
             csv_file = request.FILES['file']
             if handle_csv_file(request, csv_file, monthly_expenses):
                 return redirect('transactions', payday_id, monthly_expense_id)
@@ -213,47 +215,61 @@ def transactions(request, payday_id, monthly_expense_id):
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
     user_categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
     if request.method == 'POST':
-        # Loop through each transaction to get its selected category
-        for transaction in transactions:
-            # Get the category ID from the form data for this transaction
-            category_id = request.POST.get(f'category_{transaction.id}')
+        if 'to_fixed_costs' in request.POST:
+            print('uno')
+            # Loop through each transaction to get its selected category
+            for transaction in transactions:
+                # Get the category ID from the form data for this transaction
+                category_id = request.POST.get(f'category_{transaction.id}')
 
-            if category_id: # If category is selected retrieve it and check if it is related to ME
-                category = Category.objects.get(id=category_id)
-                category_exists = Category.objects.filter(
-                user=request.user,
-                name=category.name,
-                monthly_expenses=monthly_expenses
-                ).exists()
-
-                if category_exists: 
-                    category = Category.objects.get( # Retrieve the existing category, the transaction will be linked to it
+                if category_id: # If category is selected retrieve it and check if it is related to ME
+                    category = Category.objects.get(id=category_id)
+                    category_exists = Category.objects.filter(
                     user=request.user,
                     name=category.name,
                     monthly_expenses=monthly_expenses
-                    )
-                    category.amount += Decimal(transaction.amount)
-                    category.save()
-        
-                else:
-                    # Create new category associated with monthly_expenses object
-                    category = Category.objects.create(
+                    ).exists()
+
+                    if category_exists: 
+                        category = Category.objects.get( # Retrieve the existing category, the transaction will be linked to it
                         user=request.user,
-                        monthly_expenses=monthly_expenses,
                         name=category.name,
-                        note=category.note,
-                        amount=transaction.amount
-                    )
+                        monthly_expenses=monthly_expenses
+                        )
+                        category.amount += Decimal(transaction.amount)
+                        category.save()
+            
+                    else:
+                        # Create new category associated with monthly_expenses object
+                        category = Category.objects.create(
+                            user=request.user,
+                            monthly_expenses=monthly_expenses,
+                            name=category.name,
+                            note=category.note,
+                            amount=transaction.amount
+                        )
 
-                transaction.category = category
-                transaction.save()
+                    transaction.category = category
+                    transaction.save()
 
-        return redirect('payday_fixed_costs', payday_id, monthly_expense_id)
+            return redirect('payday_fixed_costs', payday_id, monthly_expense_id)
+        else:
+            print('due')
+            if 'delete_transaction' in request.POST:
+                print('tre')
+                transaction_id = request.POST.get('delete_transaction')
+                print(transaction_id)
+                transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
+                transaction_object.delete()
+               
+
     
     context = {
         'transactions': transactions,
         'user_categories': user_categories,
-        'variable_costs': variable_costs
+        'variable_costs': variable_costs,
+        'payday_id': payday_id,
+        'monthly_expense_id': monthly_expense_id
     }
     return render(request, 'transactions.html', context)
 
@@ -322,7 +338,11 @@ def add_transaction(request):
     return JsonResponse({'success': False, 'error': 'Invalid request'})
 
 @login_required
-def delete_transaction(request):
+def delete_transaction(request, payday_id=None, monthly_expense_id=None, transaction_id=None):
+    if payday_id and monthly_expense_id:
+        transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
+        transaction_object.delete()
+
     if request.method == 'POST':
         transaction_id = request.POST.get('transaction_id')  
         monthly_expense_id = request.POST.get('monthly_expense_id')
@@ -338,6 +358,17 @@ def delete_transaction(request):
 def paydays(request):
     paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:12] # Only show last 12 months paydays
     monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
+
+    if request.method == 'POST':
+        month = request.POST.get('month')  # Month from dropdown
+        year = request.POST.get('year')  # Year from dropdown
+        note = request.POST.get('note')  # Note text input
+        if note:
+            search_type = 'note'
+            paydays = search_payday(request, search_type, note)
+        else:
+            search_type = 'date'
+            paydays = search_payday(request, search_type, month, year)
 
     context = {
         'paydays': paydays,
@@ -703,3 +734,22 @@ def category(request, category_name):
     }
 
     return render(request, 'category.html', context)
+
+def net_worths(request):
+    net_worths = NetWorth.objects.filter(user=request.user).order_by('-date')
+    if request.method == 'POST':
+        month = request.POST.get('month')  # Month from dropdown
+        year = request.POST.get('year')  # Year from dropdown
+        note = request.POST.get('note')  # Note text input
+        if note:
+            search_type = 'note'
+            net_worths = search_net_worth(request, search_type, note)
+        else:
+            search_type = 'date'
+            net_worths = search_net_worth(request, search_type, month, year)
+
+    context = {
+        'net_worths': net_worths,
+    }
+
+    return render(request, 'net_worths.html', context)
