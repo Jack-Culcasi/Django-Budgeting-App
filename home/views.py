@@ -7,8 +7,9 @@ from datetime import datetime, timedelta
 from .models import *
 from .utils import *
 from decimal import Decimal
-from .forms import UploadFileForm
+from .forms import UploadFileForm, CSVUploadForm
 from django.contrib import messages
+import csv
 
 @login_required
 def settings(request):
@@ -130,7 +131,6 @@ def payday(request):
             
     except IndexError: # Not enough paydays to create MonthlyExpenses
         last_two_paydays = None
-    print(not last_two_paydays)
     if request.method == 'POST':
         # Get the form data
         amount = Decimal(request.POST.get('amount'))
@@ -186,13 +186,76 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
     categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True) # Retrieve only categories note associated with a MonthlyExpenses object
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
 
+    if request.method == 'POST':
+        form = CSVUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = request.FILES['file']
+            if handle_csv_file(request, csv_file, monthly_expenses):
+                return redirect('transactions', payday_id, monthly_expense_id)
+            else:
+                messages.error(request, "There's been a problem with the upload")
+
+    else:
+        form = CSVUploadForm()
+
     context = {
         'payday': payday,
         'categories': categories,
         'transactions': transactions,
         'monthly_expense_id': monthly_expense_id,
+        'form': form
     }
     return render(request, 'expenses.html', context)
+
+def transactions(request, payday_id, monthly_expense_id):
+    monthly_expenses = MonthlyExpenses.objects.get(id=monthly_expense_id)
+    transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
+    variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    user_categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
+    if request.method == 'POST':
+        # Loop through each transaction to get its selected category
+        for transaction in transactions:
+            # Get the category ID from the form data for this transaction
+            category_id = request.POST.get(f'category_{transaction.id}')
+
+            if category_id: # If category is selected retrieve it and check if it is related to ME
+                category = Category.objects.get(id=category_id)
+                category_exists = Category.objects.filter(
+                user=request.user,
+                name=category.name,
+                monthly_expenses=monthly_expenses
+                ).exists()
+
+                if category_exists: 
+                    category = Category.objects.get( # Retrieve the existing category, the transaction will be linked to it
+                    user=request.user,
+                    name=category.name,
+                    monthly_expenses=monthly_expenses
+                    )
+                    category.amount += Decimal(transaction.amount)
+                    category.save()
+        
+                else:
+                    # Create new category associated with monthly_expenses object
+                    category = Category.objects.create(
+                        user=request.user,
+                        monthly_expenses=monthly_expenses,
+                        name=category.name,
+                        note=category.note,
+                        amount=transaction.amount
+                    )
+
+                transaction.category = category
+                transaction.save()
+
+        return redirect('payday_fixed_costs', payday_id, monthly_expense_id)
+    
+    context = {
+        'transactions': transactions,
+        'user_categories': user_categories,
+        'variable_costs': variable_costs
+    }
+    return render(request, 'transactions.html', context)
 
 @login_required
 def add_transaction(request):
@@ -303,6 +366,8 @@ def monthly_expenses(request, payday_id):
     categories = Category.objects.filter(user=request.user, monthly_expenses=monthly_expenses).annotate(transactions_count=Count('transaction')) 
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
     monthly_net = monthly_expenses.payday.amount - monthly_expenses.amount
+    monthly_expenses.start_date = monthly_expenses.start_date.date()
+    monthly_expenses.end_date = monthly_expenses.end_date.date()
     context = {
         'transactions' : transactions,
         'monthly_expenses': monthly_expenses,
@@ -625,7 +690,7 @@ def category(request, category_name):
         'utilities_values': utilities_values,
         'expenses_value': expenses_value,
         'categories_notes': categories_notes,
-        'expenses_note': expenses_note
+        'expenses_note': expenses_note,
     }
 
 
@@ -633,6 +698,8 @@ def category(request, category_name):
     context = {
         'graph_data': graph_data,
         'user_categories': user_categories,
+        'sorted_user_categories': user_categories.order_by('-monthly_expenses__end_date'),
+        'category_name': category_name,
     }
 
     return render(request, 'category.html', context)
