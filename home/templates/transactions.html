@@ -28,7 +28,7 @@
         <tbody>
             {% for transaction in transactions %}
             <tr>
-                <td>{{ transaction.amount }}</td>
+                <td>{{ user.userpreferences.currency_symbol }} {{ transaction.amount }}</td>
                 <td>{{ transaction.note }}</td>
                 {% for category in user_categories %}
                 <td>
@@ -40,22 +40,16 @@
                 </td>
                 {% endfor %}
                 <td>
-                    <form action="{% url 'delete_transaction' %}" method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="payday_id" value="{{ payday.id }}">
-                        <input type="hidden" name="monthly_expense_id" value="{{ monthly_expense_id }}">
-                        <button type="submit" class="btn btn-error" name="transaction_id" value="{{ transaction.id }}">
-                          <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </form>
+                    <button type="submit" class="btn btn-error" name="delete_transaction" value="{{ transaction.id }}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     
-
-    <button type="submit" class="btn btn-primary mt-4">Save Categories</button>
+    <button type="submit" name='to_fixed_costs' class="btn btn-primary mt-4">Save Categories</button>
 </form>
 </div>
 {% endblock %}
