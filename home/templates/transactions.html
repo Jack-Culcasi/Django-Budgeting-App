@@ -1,0 +1,61 @@
+{% extends "index.html" %}
+{% block start %}
+<ul class="steps">
+    <li class="step step-primary">Payday</li>
+    <li class="step step-primary">Variable Costs</li>
+    <li class="step">Fixed Costs</li>
+    <li class="step">Deductions</li>
+    <li class="step">Investments</li>
+    <li class="step">Pension</li>
+    <li class="step">Savings</li>    
+</ul>
+<br>
+<div class="flex justify-center">
+    <h3>Total transactions: {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</h3>
+</div>
+<div class="flex justify-center">
+<form method="POST">
+    {% csrf_token %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Amount</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.note }}</td>
+                {% for category in user_categories %}
+                <td>
+                    <label>
+                        <input type="hidden" name="transaction_{{ transaction.id }}" value="{{ transaction.id }}">
+                        <input type="radio" name="category_{{ transaction.id }}" value="{{ category.id }}" {% if transaction.category == category %}checked{% endif %}>
+                        {{ category.name }}
+                    </label> 
+                </td>
+                {% endfor %}
+                <td>
+                    <form action="{% url 'delete_transaction' %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="payday_id" value="{{ payday.id }}">
+                        <input type="hidden" name="monthly_expense_id" value="{{ monthly_expense_id }}">
+                        <button type="submit" class="btn btn-error" name="transaction_id" value="{{ transaction.id }}">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+
+    <button type="submit" class="btn btn-primary mt-4">Save Categories</button>
+</form>
+</div>
+{% endblock %}
