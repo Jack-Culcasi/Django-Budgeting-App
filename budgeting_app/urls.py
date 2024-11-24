@@ -47,5 +47,6 @@ urlpatterns = [
     path('investments/', views.investments, name='investments'),
     path('pensions/', views.pensions, name='pensions'),
     path('category/<str:category_name>/', views.category, name='category'),
-    path('transactions/<int:payday_id>/<int:monthly_expense_id>/', views.transactions, name='transactions')
+    path('transactions/<int:payday_id>/<int:monthly_expense_id>/', views.transactions, name='transactions'),
+    path('net_worths/', views.net_worths, name='net_worths'),
 ]
