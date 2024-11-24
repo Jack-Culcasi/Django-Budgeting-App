@@ -116,3 +116,16 @@ const categoryChart = new Chart(ctx, {
         },
     }
 });
+
+document.getElementById('showMoreButton').addEventListener('click', function() {
+    // Select all hidden rows
+    const hiddenRows = document.querySelectorAll('.hidden-row');
+    
+    // Show all hidden rows
+    hiddenRows.forEach(row => {
+        row.classList.remove('hidden-row');
+    });
+
+    // Hide the button after all rows are shown
+    this.style.display = 'none';
+});
