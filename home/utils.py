@@ -33,19 +33,24 @@ def handle_csv_file(request, csv_file, monthly_expenses):
         for row in csv_reader:
             transaction_type = row['Transaction Type']
             if transaction_type == 'Purchase':
+                date = row['Date']
+                time = row['Time']
                 description = row['Transaction Description']
                 amount = Decimal(row['Amount'])
+                combined_note = f"{date} - {time}\n{description}".strip()
                 # Create Transaction
                 new_transaction = Transaction.objects.create(
                     user=request.user,
                     monthly_expenses=monthly_expenses,
                     amount=abs(amount),
-                    note=description
+                    note=combined_note
                 )
       
         return True
-    except:
-        return False
+    
+    except Exception as e:
+                print(f"Error updating everything: {e}")
+                return False
 
 
 def handle_uploaded_file(uploaded_file, request):
@@ -343,3 +348,79 @@ def update_monthly_expenses(request, monthly_expenses, payday):
     except Exception as e:
         print(f"Error updating monthly expenses: {e}")
         return False
+
+def search_payday(request, search_type, *args):
+    if search_type == 'note':
+        # Search by note content
+        note = args[0]  # The first argument is the note
+        paydays = Payday.objects.filter(
+            note__icontains=note  # Search for paydays with a note containing the search text
+        )
+        return paydays
+
+    elif search_type == 'date':
+        # Search by month and year
+        month_str = args[0]  # The first argument is the month (string, e.g. 'January')
+        year_str = args[1]  # The second argument is the year (string, e.g. '2025')
+
+        # Convert month string to a number (e.g. 'January' -> 1)
+        try:
+            month_number = datetime.strptime(month_str, "%B").month  # %B for full month name (e.g. 'January')
+        except ValueError:
+            # In case the month is invalid or not recognized
+            return None
+
+        # Convert year_str to an integer
+        try:
+            year = int(year_str)
+        except ValueError:
+            # If the year is invalid
+            return None
+
+        # Filter paydays based on the converted month and year
+        paydays = Payday.objects.filter(
+            payday_date__month=month_number,  # Month as integer
+            payday_date__year=year  # Year as integer
+        )
+        return paydays
+
+    else:
+        return None  # Return None if no valid search type is provided
+    
+def search_net_worth(request, search_type, *args):
+    if search_type == 'note':
+        # Search by note content
+        note = args[0]  # The first argument is the note
+        net_worths = NetWorth.objects.filter(
+            note__icontains=note  # Search for paydays with a note containing the search text
+        )
+        return net_worths
+
+    elif search_type == 'date':
+        # Search by month and year
+        month_str = args[0]  # The first argument is the month (string, e.g. 'January')
+        year_str = args[1]  # The second argument is the year (string, e.g. '2025')
+        print(month_str, year_str)
+        # Convert month string to a number (e.g. 'January' -> 1)
+        try:
+            month_number = datetime.strptime(month_str, "%B").month  # %B for full month name (e.g. 'January')
+        except ValueError:
+            # In case the month is invalid or not recognized
+            return None
+        print(month_number)
+        # Convert year_str to an integer
+        try:
+            year = int(year_str)
+        except ValueError:
+            # If the year is invalid
+            return None
+        print('sasa')
+        # Filter paydays based on the converted month and year
+        net_worths = NetWorth.objects.filter(
+            date__month=month_number,  # Month as integer
+            date__year=year  # Year as integer
+        )
+        return net_worths
+
+    else:
+        return None  # Return None if no valid search type is provided
