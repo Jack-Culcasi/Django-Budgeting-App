@@ -81,12 +81,78 @@
   </div>  
 
 </div>
-
+<br>
 <!-- Charts  -->
+<form method="POST" action="{% url 'home' %}">
+  {% csrf_token %}
 <div class="flex items-start justify-between">
     <div class="flex flex-col w-1/2">
       <div class="overflow-x-auto">
-        <h3><b>Recent Net Worth</b></h3>
+        <div class="flex items-center justify-center space-x-4 w-full">
+          
+          <!-- Dropdown for Search Type -->
+          <select
+            id="searchTypeDropdown"
+            class="select select-primary"
+            onchange="toggleSelection()"
+          >
+            <option disabled selected>Looking for a net worth?</option>
+            <option value="date">Date</option>
+            <option value="note">Note</option>
+          </select>
+        
+          <!-- Month Selection -->
+          <div id="dateSelection" class="flex items-center space-x-2 hidden">
+            <select class="select select-primary" name="month">
+              <option disabled selected>Month</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+        
+            <select class="select select-primary" name="year">
+              <option disabled selected>Year</option>
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+        
+          <!-- Note Input -->
+          <div id="noteSelection" class="hidden">
+            <input
+              type="text"
+              name="note"
+              placeholder="Type your note"
+              class="input input-bordered"
+            />
+          </div>
+        
+          <!-- Search Button -->
+          <button
+            id="searchButton"
+            type="submit"
+            class="btn btn-primary hidden"
+          >
+            Search
+          </button>
+        </div>
+        <br>
+      </form>
+      {% if not results %}
+        <p>I didn't find any net worth for this search</p>
+      {% endif %}        
         <table class="table">
           <thead>
             <tr>
@@ -154,5 +220,27 @@
 
 {% block script %}
 <script src="{% static 'js/home_charts.js' %}"></script>
+<script>
+  function toggleSelection() {
+  const dropdown = document.getElementById('searchTypeDropdown');
+  const dateSelection = document.getElementById('dateSelection');
+  const noteSelection = document.getElementById('noteSelection');
+  const searchButton = document.getElementById('searchButton');
+
+  if (dropdown.value === 'date') {
+    dateSelection.classList.remove('hidden');
+    noteSelection.classList.add('hidden');
+    searchButton.classList.remove('hidden'); // Ensure button appears
+  } else if (dropdown.value === 'note') {
+    noteSelection.classList.remove('hidden');
+    dateSelection.classList.add('hidden');
+    searchButton.classList.remove('hidden'); // Ensure button appears
+  } else {
+    dateSelection.classList.add('hidden');
+    noteSelection.classList.add('hidden');
+    searchButton.classList.add('hidden'); // Hide button if no selection
+  }
+}
+</script>
 {% endblock %}
 {% endblock %}
