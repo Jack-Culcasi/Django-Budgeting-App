@@ -44,9 +44,9 @@ def home(request):
         "add_investment": request.user.brokers.filter(investments__isnull=False).exists(),
         "add_categories": request.user.category_set.exists(),
     }
-    # If no payday/networth record
-    if NetWorth.objects.filter(user=request.user).exists(): 
-        net_worth = NetWorth.objects.filter(user=request.user).latest('date')
+    # If payday/networth record
+    if NetWorth.objects.filter(user=request.user).exists():
+        results = True
         transactions = Transaction.objects.filter(user=request.user)
         monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
         paydays = Payday.objects.filter(user=request.user)
@@ -76,6 +76,7 @@ def home(request):
         net_worth_notes = [net_worth.note for net_worth in net_worths]
         # Monthly expenses notes
         monthly_expenses_notes = [monthly_expense.note for monthly_expense in monthly_expenses]
+
         graph_data = {
             'dates': dates,
             'net_worth_values': net_worth_values,
@@ -89,6 +90,25 @@ def home(request):
             'net_worth_notes': net_worth_notes,
             'monthly_expenses_notes': monthly_expenses_notes
         }
+
+        if request.method == 'POST': # Search button pressed
+            month = request.POST.get('month')  # Month from dropdown
+            year = request.POST.get('year')  # Year from dropdown
+            note = request.POST.get('note')  # Note text input
+            if note:
+                search_type = 'note'
+                search_result = search_net_worth(request, search_type, note)
+                if search_result:
+                    net_worths = search_result
+                else:
+                    results = False
+            else:
+                search_type = 'date'
+                search_result = search_net_worth(request, search_type, month, year) 
+                if search_result:
+                    net_worths = search_result
+                else:
+                    results = False
 
         context = {
         'last_net_worth': last_net_worth,
@@ -108,13 +128,13 @@ def home(request):
         'pac': pac,
         'graph_data': graph_data,
         'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
+        'results': results
         }   
     else:
         context = {
             'steps_completed': steps_completed,
             'payday_exists': payday_exists,
         }
-        net_worth = 0  # Handle the case when no record exists     
 
     return render(request, 'home.html', context)
 
