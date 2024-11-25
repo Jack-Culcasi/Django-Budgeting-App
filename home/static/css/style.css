@@ -13,4 +13,11 @@ body h3 { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.8rem; }
 body h4 { font-size: 1.25rem; font-weight: bold; margin-bottom: 0.7rem; }
 body h5 { font-size: 1rem; font-weight: bold; margin-bottom: 0.6rem; }
 body h6 { font-size: 0.875rem; font-weight: bold; margin-bottom: 0.5rem; }
+body p {
+  font-size: 1rem;
+  font-weight: normal;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: #333; 
+}
   
