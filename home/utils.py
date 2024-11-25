@@ -398,23 +398,14 @@ def search_net_worth(request, search_type, *args):
 
     elif search_type == 'date':
         # Search by month and year
-        month_str = args[0]  # The first argument is the month (string, e.g. 'January')
+        month_number = args[0]  # The first argument is the month (string, e.g. 'January')
         year_str = args[1]  # The second argument is the year (string, e.g. '2025')
-        print(month_str, year_str)
-        # Convert month string to a number (e.g. 'January' -> 1)
-        try:
-            month_number = datetime.strptime(month_str, "%B").month  # %B for full month name (e.g. 'January')
-        except ValueError:
-            # In case the month is invalid or not recognized
-            return None
-        print(month_number)
         # Convert year_str to an integer
         try:
             year = int(year_str)
         except ValueError:
             # If the year is invalid
-            return None
-        print('sasa')
+            return False
         # Filter paydays based on the converted month and year
         net_worths = NetWorth.objects.filter(
             date__month=month_number,  # Month as integer
@@ -423,4 +414,4 @@ def search_net_worth(request, search_type, *args):
         return net_worths
 
     else:
-        return None  # Return None if no valid search type is provided
+        return False  # Return False if no valid search type is provided
