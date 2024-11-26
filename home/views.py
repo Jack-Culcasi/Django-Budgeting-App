@@ -139,10 +139,6 @@ def home(request):
     return render(request, 'home.html', context)
 
 @login_required
-def first_time_buttons(request):
-    pass
-
-@login_required
 def payday(request):
     today_date = timezone.now().date().strftime('%Y-%m-%d')
     # Check if is first payday ever, if it is, prompt start date field
@@ -207,10 +203,8 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
 
     if request.method == 'POST':
-        print('post')
         form = CSVUploadForm(request.POST, request.FILES)
         if form.is_valid():
-            print('valid')
             csv_file = request.FILES['file']
             if handle_csv_file(request, csv_file, monthly_expenses):
                 return redirect('transactions', payday_id, monthly_expense_id)
@@ -236,7 +230,6 @@ def transactions(request, payday_id, monthly_expense_id):
     user_categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
     if request.method == 'POST':
         if 'to_fixed_costs' in request.POST:
-            print('uno')
             # Loop through each transaction to get its selected category
             for transaction in transactions:
                 # Get the category ID from the form data for this transaction
@@ -274,11 +267,8 @@ def transactions(request, payday_id, monthly_expense_id):
 
             return redirect('payday_fixed_costs', payday_id, monthly_expense_id)
         else:
-            print('due')
             if 'delete_transaction' in request.POST:
-                print('tre')
                 transaction_id = request.POST.get('delete_transaction')
-                print(transaction_id)
                 transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
                 transaction_object.delete()
                
@@ -754,22 +744,3 @@ def category(request, category_name):
     }
 
     return render(request, 'category.html', context)
-
-def net_worths(request):
-    net_worths = NetWorth.objects.filter(user=request.user).order_by('-date')
-    if request.method == 'POST':
-        month = request.POST.get('month')  # Month from dropdown
-        year = request.POST.get('year')  # Year from dropdown
-        note = request.POST.get('note')  # Note text input
-        if note:
-            search_type = 'note'
-            net_worths = search_net_worth(request, search_type, note)
-        else:
-            search_type = 'date'
-            net_worths = search_net_worth(request, search_type, month, year)
-
-    context = {
-        'net_worths': net_worths,
-    }
-
-    return render(request, 'net_worths.html', context)
