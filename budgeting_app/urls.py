@@ -41,12 +41,10 @@ urlpatterns = [
     path('payday_savings/<int:payday_id>/<int:monthly_expense_id>/', views.payday_savings, name='payday_savings'),
     path('fixed_costs/', views.fixed_costs, name='fixed_costs'),
     path('deductions/<int:payday_id>/<int:monthly_expense_id>/', views.deductions, name='deductions'),
-    path('first_time_buttons/', views.first_time_buttons, name='first_time_buttons'),
     path('banks/', views.banks, name='banks'),
     path('brokers/', views.brokers, name='brokers'),
     path('investments/', views.investments, name='investments'),
     path('pensions/', views.pensions, name='pensions'),
     path('category/<str:category_name>/', views.category, name='category'),
     path('transactions/<int:payday_id>/<int:monthly_expense_id>/', views.transactions, name='transactions'),
-    path('net_worths/', views.net_worths, name='net_worths'),
 ]
