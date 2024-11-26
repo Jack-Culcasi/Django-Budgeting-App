@@ -7,4 +7,4 @@
 - Trasanctions in Transaction page needs to be deleted without refreshing the page thus resetting categories
 
 - Dove ho lasciato: 
-        - Errore net_worths tasto cerca per data
+        - 
