@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="{{ csrf_token }}">
+  
   <title>{% block title %}Budgeting App{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -82,7 +82,6 @@
         <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
           <!-- Sidebar content here -->
           <li><a href="{% url 'home' %}">Overview</a></li>
-          <li><a href="{% url 'net_worths' %}">Net Worths</a></li>
           <li><a href="{% url 'paydays' %}">Paydays</a></li>
           <li><a href="{% url 'categories' %}">Categories</a></li>
           <li><a href="{% url 'banks' %}">Banks</a></li>
