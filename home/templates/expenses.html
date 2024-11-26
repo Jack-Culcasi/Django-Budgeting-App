@@ -1,5 +1,14 @@
 {% extends "index.html" %}
 {% block start %}
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
 <ul class="steps">
     <li class="step step-primary">Payday</li>
@@ -140,7 +149,6 @@
                                     {% csrf_token %}
                                     <input type="hidden" name="payday_id" value="{{ payday.id }}">
                                     <input type="hidden" name="monthly_expense_id" value="{{ monthly_expense_id }}">
-                                    <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('meta[name="csrf-token"]').content}">
                                     <button type="submit" class="btn btn-error" name="transaction_id" value="${data.transaction_id}">
                                       <i class="fas fa-trash-alt"></i>
                                     </button>
