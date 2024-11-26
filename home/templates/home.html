@@ -2,6 +2,15 @@
 {% block start %}
 {% load humanize %}
 {% load static %}
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 {% if payday_exists %}
 {% else %}
 <ul class="steps">
@@ -161,18 +170,21 @@
               <th>Savings</th>
               <th>Investments</th>
               <th>Pensions</th>
+              <th>Payday</th>
             </tr>
           </thead>
           {% for net_worth in net_worths %}
           <tbody>
             <!-- row 1 -->
             <tr>
-              <th>{{ net_worth.payday.payday_date|date:"M-Y" }}</th>
+              <td><b>{{ net_worth.payday.payday_date|date:"M-Y" }}</b></td>
               <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.net_worth|floatformat:2|intcomma }}</td>
               <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_savings|floatformat:2|intcomma }}</td>
               <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_investments|floatformat:2|intcomma }}</td>
               <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_pension|floatformat:2|intcomma }}</td>
-              
+              <td>
+                <a  href="{% url 'monthly_expenses' net_worth.payday.id %}" class="btn btn-outline">{{ net_worth.payday.id }}</a>
+              </td>
             </tr>
           </tbody>
           {% endfor %}
@@ -188,7 +200,7 @@
 </div>
 {% else %}
 <br>
-<form id="first_time_buttons" method="POST" action="{% url 'first_time_buttons' %}"> <!-- To be removed -->
+
   <div class="flex flex-col items-center justify-center">
     <div class="flex flex-col items-center w-full max-w-xs mb-4">
       {% csrf_token %}
@@ -214,7 +226,7 @@
       {% endif %}
     </div>
   </div>
-</form>
+
 
 {% endif %}
 
