@@ -14,7 +14,7 @@
     <h3>Total transactions: {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</h3>
 </div>
 <div class="flex justify-center">
-<form method="POST">
+<form method="POST" action="{% url 'transactions' payday_id=payday_id monthly_expense_id=monthly_expense_id %}">
     {% csrf_token %}
     <table class="table">
         <thead>
@@ -34,7 +34,7 @@
                 <td>
                     <label>
                         <input type="hidden" name="transaction_{{ transaction.id }}" value="{{ transaction.id }}">
-                        <input type="radio" name="category_{{ transaction.id }}" value="{{ category.id }}" {% if transaction.category == category %}checked{% endif %}>
+                        <input type="radio" name="category_{{ transaction.id }}" value="{{ category.id }}"  {% if transaction.category.name == category.name %}checked{% endif %}>
                         {{ category.name }}
                     </label> 
                 </td>
@@ -49,7 +49,57 @@
         </tbody>
     </table>
     
-    <button type="submit" name='to_fixed_costs' class="btn btn-primary mt-4">Save Categories</button>
+    <button type="submit" name='to_fixed_costs' class="btn btn-primary mt-4">To Fixed Costs</button>
 </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const deleteButtons = document.querySelectorAll('button[name="delete_transaction"]');
+
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const form = this.closest('form'); // Get the form element
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value; // Extract CSRF token
+            const transactionRow = this.closest('tr'); // Get the row to delete
+            const amountElement = transactionRow.querySelector('td'); // First column (Amount)
+            const amount = parseFloat(amountElement.textContent.replace(/[^\d.-]/g, '')); // Parse numeric value
+
+            // Prepare form data
+            const formData = new FormData(form);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+            formData.append('delete_transaction', this.value);
+
+            // Send AJAX request
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to delete transaction.');
+                    }
+                    return response.text();
+                })
+                .then(() => {
+                    // Remove the transaction row from the table
+                    transactionRow.remove();
+
+                    // Update the total amount dynamically
+                    const totalElement = document.querySelector('h3');
+                    const currentTotal = parseFloat(totalElement.textContent.replace(/[^\d.-]/g, '')); // Parse current total
+                    const newTotal = (currentTotal - amount).toFixed(2); // Calculate new total
+                    totalElement.textContent = `Total transactions: {{ user.userpreferences.currency_symbol }} ${newTotal}`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting transaction. Please try again.');
+                });
+        });
+    });
+});
+</script>
+
 {% endblock %}
