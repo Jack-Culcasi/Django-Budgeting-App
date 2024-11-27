@@ -8,8 +8,9 @@ const categoriesNotes = graphData.categories_notes;
 const utilitiesValues = graphData.utilities_values;  // Y-axis for utilities values
 const expensesValue = graphData.expenses_value;  // Y-axis for expenses values
 const expensesNotes = graphData.expenses_notes;
+const categoryName = graphData.category_name;
 
-// Create net_worth chart
+// Create mixed chart
 const ctx_1 = document.getElementById('mixedChart').getContext('2d');
 const mixedChart = new Chart(ctx_1, {
     type: 'line', // Line chart
@@ -66,7 +67,7 @@ const mixedChart = new Chart(ctx_1, {
     }
 });
 
-// Create net_worth chart
+// Create category chart
 const ctx = document.getElementById('categoryChart').getContext('2d');
 const categoryChart = new Chart(ctx, {
     type: 'line', // Line chart
@@ -74,7 +75,7 @@ const categoryChart = new Chart(ctx, {
         labels: categoriesDates,  // X-axis (dates)
         datasets: [
             {
-                label: 'Category Values (£)',  // First line
+                label: `${categoryName} Values (£)`,  // First line
                 data: categoriesValues,  
                 borderColor: 'rgba(255, 159, 64, 1)',
                 backgroundColor: 'rgba(255, 159, 64, 0.2)',
