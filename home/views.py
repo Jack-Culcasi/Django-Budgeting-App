@@ -242,6 +242,9 @@ def transactions(request, payday_id, monthly_expense_id):
                     name=category.name,
                     monthly_expenses=monthly_expenses
                     ).exists()
+                    # If the transaction already has a category and that category has the same name of the selected category 
+                    if transaction.category and transaction.category.name == category.name and transaction.category.monthly_expenses == monthly_expenses:
+                        continue # Skip the transaction
 
                     if category_exists: 
                         category = Category.objects.get( # Retrieve the existing category, the transaction will be linked to it
@@ -270,9 +273,7 @@ def transactions(request, payday_id, monthly_expense_id):
             if 'delete_transaction' in request.POST:
                 transaction_id = request.POST.get('delete_transaction')
                 transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
-                transaction_object.delete()
-               
-
+                transaction_object.delete_transaction()
     
     context = {
         'transactions': transactions,
@@ -349,16 +350,12 @@ def add_transaction(request):
 
 @login_required
 def delete_transaction(request, payday_id=None, monthly_expense_id=None, transaction_id=None):
-    if payday_id and monthly_expense_id:
-        transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
-        transaction_object.delete()
-
-    if request.method == 'POST':
+    if request.method == 'POST': # Expenses page
         transaction_id = request.POST.get('transaction_id')  
         monthly_expense_id = request.POST.get('monthly_expense_id')
-        payday_id = request.POST.get('payday_id')     
+        payday_id = request.POST.get('payday_id')   
         transaction_object = Transaction.objects.get(id=transaction_id, user=request.user)
-        transaction_object.delete()
+        transaction_object.delete_transaction()
 
     return redirect('expenses', payday_id, monthly_expense_id)
         
@@ -693,6 +690,18 @@ def brokers(request):
 @login_required
 def pensions(request):
     pensions = Pension.objects.filter(user=request.user)
+    net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
+    # Extract dates and pension values for chart
+    dates = [net_worth.date.strftime('%m-%Y') for net_worth in net_worths]
+    pension_values = [net_worth.total_pension for net_worth in net_worths]
+    net_worth_values = [net_worth.net_worth for net_worth in net_worths]
+
+
+    graph_data = {
+        'dates': dates,
+        'pension_values': pension_values,
+        'net_worth_values': net_worth_values
+    }
 
     if request.method == 'POST':
         pension_id = request.POST.get('pension_id')
@@ -712,9 +721,11 @@ def pensions(request):
 
     context = {
         'pensions': pensions,
+        'graph_data': graph_data
     }
     return render(request, 'pensions.html', context)
 
+@login_required
 def category(request, category_name):
     # Charts data
     user_categories = Category.objects.filter(user=request.user, name=category_name).exclude(monthly_expenses__isnull=True)
@@ -732,6 +743,7 @@ def category(request, category_name):
         'expenses_value': expenses_value,
         'categories_notes': categories_notes,
         'expenses_note': expenses_note,
+        'category_name': category_name
     }
 
 
@@ -744,3 +756,35 @@ def category(request, category_name):
     }
 
     return render(request, 'category.html', context)
+
+@login_required
+def fixed_cost(request, fixed_cost_name):
+    # Charts data
+    user_fixed_costs = FixedCosts.objects.filter(user=request.user, name=fixed_cost_name).exclude(monthly_expenses__isnull=True)
+    fixed_cost_notes = [fixed_cost.note for fixed_cost in user_fixed_costs]
+    user_fixed_dates = [user_fixed.monthly_expenses.end_date.strftime('%m-%Y') for user_fixed in user_fixed_costs]
+    user_fixed_values = [user_fixed.amount for user_fixed in user_fixed_costs]
+    user_monthly_expenses = [user_fixed.monthly_expenses for user_fixed in user_fixed_costs]
+    utilities_values = [monthly_expenses.utilities for monthly_expenses in user_monthly_expenses]
+    expenses_value = [monthly_expenses.amount for monthly_expenses in user_monthly_expenses]
+    expenses_note = [monthly_expenses.note for monthly_expenses in user_monthly_expenses]
+    graph_data = {
+        'user_fixed_dates': user_fixed_dates,
+        'user_fixed_values': user_fixed_values,
+        'utilities_values': utilities_values,
+        'expenses_value': expenses_value,
+        'fixed_cost_notes': fixed_cost_notes,
+        'expenses_note': expenses_note,
+        'fixed_cost_name': fixed_cost_name
+    }
+
+
+
+    context = {
+        'graph_data': graph_data,
+        'user_fixed_costs': user_fixed_costs,
+        'sorted_user_fixed_costs': user_fixed_costs.order_by('-monthly_expenses__end_date'),
+        'category_name': fixed_cost_name,
+    }
+
+    return render(request, 'fixed_cost.html', context)
