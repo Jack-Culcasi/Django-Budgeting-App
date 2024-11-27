@@ -23,6 +23,13 @@ class Payday(models.Model):
             return monthly_expense
         except:
             return None
+        
+    def get_net_worth(self):
+        try:
+            net_worth = NetWorth.objects.get(payday=self)
+            return net_worth
+        except Exception as e:
+            print(f"Error fetching related net_worth: {e}")
 
     def __str__(self):
         return f'Payday for {self.user.username} on {self.payday_date}'
@@ -101,6 +108,15 @@ class Transaction(models.Model):
     monthly_expenses = models.ForeignKey(MonthlyExpenses, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     note = models.CharField(max_length=255, null=True, blank=True)
+
+    def delete_transaction(self):
+        try:
+            if self.category:
+                self.category.amount -= self.amount
+                self.category.save()
+            self.delete()
+        except Exception as e:
+            print(f"Error deleting transaction: {e}")
 
     def __str__(self):
         category_name = self.category.name if self.category else "No Category"
