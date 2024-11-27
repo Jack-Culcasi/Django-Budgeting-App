@@ -1,0 +1,59 @@
+{% extends "index.html" %}
+{% block start %}
+{% load static %}  
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="flex items-start justify-between">
+  <div class="flex flex-col items-center w-1/2">
+    <canvas id="fixedCostChart" width="800" height="400">{{ graph_data|json_script:"graph-data" }}</canvas> 
+    <h3><b>{{ fixed_cost_name }}</b></h3>  
+    <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Payday</th>
+            <th>Amount</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fixed_cost in sorted_user_fixed_costs %}
+          <tr class="{% if forloop.counter > 12 %}hidden-row{% endif %}">
+            <td><b>{{ fixed_cost.monthly_expenses.end_date|date:"M Y" }}</b></td>
+            <td>
+              <a  href="{% url 'monthly_expenses' fixed_cost.monthly_expenses.payday.id %}" class="btn btn-outline">{{ fixed_cost.monthly_expenses.payday.id }}</a>
+            </td>
+            <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+            <td>
+              {% if fixed_cost.note %}
+                <span title="{{ fixed_cost.note }}">Note</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+    </table>
+    <button id="showMoreButton" class="btn btn-primary mt-4">Show More</button>
+</div>
+  
+    <div class="w-1/2">    
+        <canvas id="mixedChart" width="800" height="400">{{ graph_data|json_script:"graph-data" }}</canvas>  
+    </div>    
+
+</div>
+
+
+
+
+{% block script %}
+<script src="{% static 'js/fixed_cost_chart.js' %}"></script>
+{% endblock %}
+{% endblock %}
