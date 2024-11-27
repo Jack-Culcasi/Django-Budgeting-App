@@ -46,9 +46,7 @@
       {% for bank in banks %}
       <tbody>
         <tr>
-          <td>
-            <a href="#" class="btn btn-outline">{{ bank.name }}</a>
-          </td>
+          <td>{{ bank.name }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ bank.amount }}</td>
           <td>{{ bank.note }}</td>
           <td>

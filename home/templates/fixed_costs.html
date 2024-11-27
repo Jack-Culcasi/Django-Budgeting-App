@@ -49,7 +49,7 @@
       <tbody>
         <tr>
           <td>
-          <a  href="#" class="btn btn-outline">{{ fixed_cost.name }}</a>
+          <a  href="{% url 'fixed_cost' fixed_cost.name %}" class="btn btn-outline">{{ fixed_cost.name }}</a>
           </td>
           <td>{{ fixed_cost.times_used }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest }}</td>

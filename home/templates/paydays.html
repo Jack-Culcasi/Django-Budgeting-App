@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load humanize %}
 {% if messages %}
     <div>
         {% for message in messages %}
@@ -117,9 +118,9 @@
       <thead>
         <tr>
           <th></th>
-          <th>ME ID</th>
           <th>Salary</th>
           <th>Expenses</th>
+          <th>Net Worth</th>
           <th>From</th>
           <th>To</th>
           <th>Note</th>
@@ -133,9 +134,9 @@
           <th>
             <a  href="{% url 'monthly_expenses' payday.id %}" class="btn btn-outline">{{ payday.id }}</a>
           </th>
-          <td>{{ payday.monthly_expenses.first.id }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ payday.amount }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ payday.monthly_expenses.first.amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ payday.amount|floatformat:2|intcomma }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ payday.monthly_expenses.first.amount|floatformat:2|intcomma }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ payday.get_net_worth.net_worth|floatformat:2|intcomma }}</td>
           <td>
             {{ payday.monthly_expenses.first.start_date|date:"M. j, Y" }}
           </td>

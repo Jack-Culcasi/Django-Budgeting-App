@@ -59,9 +59,7 @@
       {% for investment in investments %}
       <tbody>
         <tr>
-          <td>
-            <a href="#" class="btn btn-outline">{{ investment.name }}</a>
-          </td>
+          <td>{{ investment.name }}</td>
           <td>{{ investment.broker.name }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ investment.amount }}</td>
           <td>{{ investment.note }}</td>

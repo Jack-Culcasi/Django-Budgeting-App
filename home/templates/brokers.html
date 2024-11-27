@@ -39,9 +39,7 @@
       {% for broker in brokers %}
       <tbody>
         <tr>
-          <td>
-            <a href="#" class="btn btn-outline">{{ broker.name }}</a>
-          </td>
+          <td>{{ broker.name }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ broker.amount }}</td>
           <td>{{ broker.note }}</td>
           <td>
