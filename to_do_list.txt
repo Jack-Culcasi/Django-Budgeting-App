@@ -1,10 +1,11 @@
-- <meta> tag with token needs to be fixed
 - Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add alert and succes messagges
 - Add button to go back (i.e. in Paydays)
 - Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC
 - Give chance to add notes around
-- Trasanctions in Transaction page needs to be deleted without refreshing the page thus resetting categories
+- Polish code in view by creating functions on utils.py (i.e. add_transaction)
+- Move JS to separate file
+- Add Modify option (i.e. note in banks, pensions etc...)
 
 - Dove ho lasciato: 
-        - Aggiungere JS su transactions.html
+        - Pension grafici
