@@ -9,7 +9,8 @@ from .utils import *
 from decimal import Decimal
 from .forms import UploadFileForm, CSVUploadForm
 from django.contrib import messages
-import csv
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
 
 @login_required
 def settings(request):
@@ -696,7 +697,6 @@ def pensions(request):
     pension_values = [net_worth.total_pension for net_worth in net_worths]
     net_worth_values = [net_worth.net_worth for net_worth in net_worths]
 
-
     graph_data = {
         'dates': dates,
         'pension_values': pension_values,
@@ -724,6 +724,7 @@ def pensions(request):
         'graph_data': graph_data
     }
     return render(request, 'pensions.html', context)
+
 
 @login_required
 def category(request, category_name):
@@ -788,3 +789,34 @@ def fixed_cost(request, fixed_cost_name):
     }
 
     return render(request, 'fixed_cost.html', context)
+
+@login_required
+def add_note(request):
+    if request.method == 'POST':
+        object_type = request.POST.get('object_type')  # e.g., 'pension', 'category'
+        object_id = request.POST.get('object_id')      
+        note = request.POST.get('note', '')
+
+        if not object_type or not object_id:
+            return JsonResponse({'success': False, 'error': 'Invalid request data.'})
+
+        # Get the model class dynamically
+        try:
+            content_type = ContentType.objects.get(model=object_type)
+            model_class = content_type.model_class()
+            if object_type == 'investment':
+                investment = check_user_investment(request, object_id)
+                if investment:
+                    target_object = investment
+            else:
+                target_object = get_object_or_404(model_class, id=object_id, user=request.user)
+        except ContentType.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'Unknown object type: {object_type}.'})
+
+        # Update the note
+        target_object.note = note
+        target_object.save()
+
+        return JsonResponse({'success': True, 'note': target_object.note})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
