@@ -415,3 +415,10 @@ def search_net_worth(request, search_type, *args):
 
     else:
         return False  # Return False if no valid search type is provided
+
+def check_user_investment(request, investment_id): # Check if an investment is related to the current user
+        user_brokers = Broker.objects.filter(user=request.user)
+        for broker in user_brokers:
+            if Investment.objects.filter(broker=broker, id=investment_id).exists():
+                return Investment.objects.get(broker=broker, id=investment_id)
+        return None
