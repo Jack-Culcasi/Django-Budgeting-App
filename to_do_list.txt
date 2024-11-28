@@ -8,4 +8,4 @@
 - Add Modify option (i.e. note in banks, pensions etc...)
 
 - Dove ho lasciato: 
-        - Pension grafici
+        - lavorando su Give chance to add notes around (investment fatto)
