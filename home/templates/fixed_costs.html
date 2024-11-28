@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load static %}
 <form method="post" action="{% url 'fixed_costs' %}">
 {% csrf_token %}
 <div class="flex flex-col items-center justify-center">
@@ -54,7 +55,15 @@
           <td>{{ fixed_cost.times_used }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.average_amount }}</td>
-          <td>{{ fixed_cost.note }}</td>
+          <td id="note-cell-fixedcosts-{{ fixed_cost.id }}">
+            {% if fixed_cost.note %}
+                {{ fixed_cost.note }}
+            {% else %}
+                <button class="btn btn-primary add-note-btn" data-object-id="{{ fixed_cost.id }}" data-object-type="fixedcosts">
+                    <i class="fas fa-plus"></i>
+                </button>
+            {% endif %}
+        </td>      
           <td>
             <form action="{% url 'fixed_costs' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this fixed cost?')">
               {% csrf_token %}
@@ -68,4 +77,10 @@
       {% endfor %}
     </table>
   </div>
+
+
+{% block script %}
+<script>const addNoteUrl = "{% url 'add_note' %}";</script>
+<script src="{% static 'js/add_note.js' %}"></script>
+{% endblock %}
 {% endblock %}
