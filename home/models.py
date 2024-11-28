@@ -191,7 +191,6 @@ class Investment(models.Model):
     def __str__(self):
         return f"Investment in {self.name} for {self.amount} by {self.broker.name}"
 
-
 class Bank(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='banks')
     name = models.CharField(max_length=64)
