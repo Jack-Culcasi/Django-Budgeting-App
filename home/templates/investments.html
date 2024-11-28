@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load static %}
 <form method="post" action="{% url 'investments' %}">
 {% csrf_token %}
 <div class="flex flex-col items-center justify-center">
@@ -62,7 +63,15 @@
           <td>{{ investment.name }}</td>
           <td>{{ investment.broker.name }}</td>
           <td>{{ user.userpreferences.currency_symbol }} {{ investment.amount }}</td>
-          <td>{{ investment.note }}</td>
+          <td id="note-cell-investment-{{ investment.id }}">
+            {% if investment.note %}
+                {{ investment.note }}
+            {% else %}
+                <button class="btn btn-primary add-note-btn" data-object-id="{{ investment.id }}" data-object-type="investment">
+                    <i class="fas fa-plus"></i>
+                </button>
+            {% endif %}
+          </td>
           <th>
             <form action="{% url 'investments' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this investment?');">
               {% csrf_token %}
@@ -77,4 +86,8 @@
       {% endfor %}
     </table>
   </div>
+{% block script %}
+<script>const addNoteUrl = "{% url 'add_note' %}";</script>
+<script src="{% static 'js/add_note.js' %}"></script>
+{% endblock %}
 {% endblock %}
