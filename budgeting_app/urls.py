@@ -48,4 +48,5 @@ urlpatterns = [
     path('category/<str:category_name>/', views.category, name='category'),
     path('fixed_cost/<str:fixed_cost_name>/', views.fixed_cost, name='fixed_cost'),
     path('transactions/<int:payday_id>/<int:monthly_expense_id>/', views.transactions, name='transactions'),
+    path('add_note/', views.add_note, name='add_note')
 ]
