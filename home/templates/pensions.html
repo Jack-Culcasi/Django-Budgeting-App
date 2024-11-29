@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load humanize %}
 {% load static %}  
 {% if messages %}
     <div>
@@ -64,7 +65,7 @@
                 <tbody>
                     <tr>
                         <td>{{ pension.name }}</td>
-                        <td>{{ user.userpreferences.currency_symbol }} {{ pension.amount }}</td>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ pension.amount|floatformat:2|intcomma }}</td>
                         <td id="note-cell-pension-{{ pension.id }}">
                             {% if pension.note %}
                                 {{ pension.note }}

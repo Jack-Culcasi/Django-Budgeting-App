@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load humanize %}
 {% load static %}
 <form method="post" action="{% url 'investments' %}">
 {% csrf_token %}
@@ -62,7 +63,7 @@
         <tr>
           <td>{{ investment.name }}</td>
           <td>{{ investment.broker.name }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ investment.amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ investment.amount|floatformat:2|intcomma }}</td>
           <td id="note-cell-investment-{{ investment.id }}">
             {% if investment.note %}
                 {{ investment.note }}

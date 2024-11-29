@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+{% load humanize %}
 {% load static %}
 <form method="post" action="{% url 'fixed_costs' %}">
 {% csrf_token %}
@@ -53,8 +54,8 @@
           <a  href="{% url 'fixed_cost' fixed_cost.name %}" class="btn btn-outline">{{ fixed_cost.name }}</a>
           </td>
           <td>{{ fixed_cost.times_used }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest }}</td>
-          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.average_amount }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.latest|floatformat:2|intcomma }}</td>
+          <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.average_amount|floatformat:2|intcomma }}</td>
           <td id="note-cell-fixedcosts-{{ fixed_cost.id }}">
             {% if fixed_cost.note %}
                 {{ fixed_cost.note }}
