@@ -164,7 +164,7 @@ class FixedCosts(models.Model):
         
     def latest(self):
         try:
-            latest_fixed_cost = FixedCosts.objects.filter(user=self.user, name=self.name, monthly_expenses__isnull=False).order_by('-monthly_expenses__payday__payday_date').first()
+            latest_fixed_cost = FixedCosts.objects.filter(user=self.user, name=self.name).order_by('-monthly_expenses__payday__payday_date').first()
             return latest_fixed_cost.amount
         except:
             return 0
