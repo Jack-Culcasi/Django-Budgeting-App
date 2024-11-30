@@ -368,6 +368,11 @@ def paydays(request):
     monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
 
     if request.method == 'POST':
+
+        if 'payday_id' in request.POST: # Amend button
+            payday_id = request.POST.get('payday_id')
+            return redirect('amend_payday', payday_id)
+        
         month = request.POST.get('month')  # Month from dropdown
         year = request.POST.get('year')  # Year from dropdown
         note = request.POST.get('note')  # Note text input
@@ -384,6 +389,17 @@ def paydays(request):
     }
 
     return render(request, 'paydays.html', context)
+
+@login_required
+def amend_payday(request, payday_id):
+    payday_obj = Payday.objects.get(user=request.user, id=payday_id)
+
+    context = {
+        'payday_id': payday_id,
+        'payday_obj': payday_obj
+    }
+
+    return render(request, 'amend_payday.html', context)
 
 @login_required
 def delete_payday(request):
