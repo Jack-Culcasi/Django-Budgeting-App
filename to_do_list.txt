@@ -2,10 +2,9 @@
 - Add alert and succes messagges
 - Add button to go back (i.e. in Paydays)
 - Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC
-- Give chance to add notes around
 - Polish code in view by creating functions on utils.py (i.e. add_transaction)
 - Move JS to separate file
-- Add Modify option (i.e. note in banks, pensions etc...)
+- Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - lavorando su Give chance to add notes around (investment fatto)
+        - lavorando su amend payday
