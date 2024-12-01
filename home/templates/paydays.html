@@ -150,18 +150,19 @@
           </td>
           <td>
             <div class="flex space-x-4">
+              <form method="POST" action="{% url 'paydays' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" name="payday_id" value="{{ payday.id }}">
+                  <i class="fas fa-pencil-alt"></i> 
+                </button>              
+              </form>
+              
               <form action="{% url 'delete_payday' %}" method="post" onsubmit="return confirm('Are you sure you want to delete this payday?');">
                 {% csrf_token %}
                 <input type="hidden" name="source" value="{% url 'paydays' %}">
                 <button type="submit" class="btn btn-error" name="payday_id" value="{{ payday.id }}">
                   <i class="fas fa-trash-alt"></i>
                 </button>
-              </form>
-              <form method="POST" action="{% url 'paydays' %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-primary" name="payday_id" value="{{ payday.id }}">
-                  <i class="fas fa-pencil-alt"></i> 
-                </button>              
               </form>
             </div>
             
