@@ -300,7 +300,6 @@ def create_net_worth(request, payday):
         return True
     
     except Exception as e:
-        # Log the exception if needed
         print(f"Error creating net_worth: {e}")
         return False  
     
