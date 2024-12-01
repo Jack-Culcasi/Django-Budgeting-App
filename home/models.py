@@ -65,6 +65,15 @@ class Category(models.Model):
     def __str__(self):
         return f'Name: {self.name}, ME id: {self.monthly_expenses.id}, Amount: {self.amount}'
     
+    def get_transactions_amount(self):
+        try:
+            transactions = Transaction.objects.filter(user=self.user, category=self)
+            transactions_amount = sum(transaction.amount for transaction in transactions)
+            return transactions_amount
+        except Exception as e:
+            print(f"Error calculating total category amount: {e}")
+            return ValueError
+    
     def difference_with_last_month(self):
         # Find the previous month's expenses
         last_month_expenses = MonthlyExpenses.objects.filter(
