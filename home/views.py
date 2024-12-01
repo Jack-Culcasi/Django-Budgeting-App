@@ -393,10 +393,71 @@ def paydays(request):
 @login_required
 def amend_payday(request, payday_id):
     payday_obj = Payday.objects.get(user=request.user, id=payday_id)
+    monthly_expenses = get_object_or_404(MonthlyExpenses, payday=payday_obj)
+    categories = Category.objects.filter(monthly_expenses=monthly_expenses)
+    fixed_costs = FixedCosts.objects.filter(monthly_expenses=monthly_expenses)
+    transactions = Transaction.objects.filter(monthly_expenses=monthly_expenses)
+    monthly_net = monthly_expenses.payday.amount - monthly_expenses.amount
+    monthly_expenses.start_date = monthly_expenses.start_date.date()
+    monthly_expenses.end_date = monthly_expenses.end_date.date()
+    me_start_date = monthly_expenses.start_date.strftime('%Y-%m-%d')
+    me_end_date = monthly_expenses.end_date.strftime('%Y-%m-%d')
+
+    if request.method == 'POST':
+        try:
+            # Update Monthly Expenses fields
+            monthly_expenses.start_date = request.POST.get('start_date')
+            monthly_expenses.end_date = request.POST.get('end_date')
+            payday_obj.amount = Decimal(request.POST.get('salary'))
+            payday_obj.note = request.POST.get('payday_note')
+            monthly_expenses.deductions = Decimal(request.POST.get('deductions')) 
+            monthly_expenses.save()
+            payday_obj.save()
+
+            # Update Categories
+            for category in categories:
+                category.amount = request.POST.get(f'category_{category.id}_amount', category.amount)
+                category.note = request.POST.get(f'category_{category.id}_note', category.note)
+                category.save()
+
+            # Update Fixed Costs
+            for fixed_cost in fixed_costs:
+                fixed_cost.amount = request.POST.get(f'fixed_cost_{fixed_cost.id}_amount', fixed_cost.amount)
+                fixed_cost.note = request.POST.get(f'fixed_cost_{fixed_cost.id}_note', fixed_cost.note)
+                fixed_cost.save()
+
+            # Update Transactions
+            for transaction in transactions:
+                transaction.amount = request.POST.get(f'transaction_{transaction.id}_amount', transaction.amount)
+                transaction.note = request.POST.get(f'transaction_{transaction.id}_note', transaction.note)
+                transaction.save()
+                if transaction.category:
+                    transaction.category.amount = transaction.category.get_transactions_amount()                    
+                    transaction.category.save()
+
+            update_me = update_monthly_expenses(request, monthly_expenses, payday_obj)
+            if not update_me:  # If update_me is False, raise an exception
+                raise ValueError("Failed to update monthly expenses.")
+            
+            messages.success(request, "Payday successfully amended")
+            return redirect('monthly_expenses', payday_obj.id)
+        
+        except Exception as e:
+            print(f"Error updating monthly expenses: {e}")
+            messages.error(request, "An error occurred while amending your Payday. Please try again.")
+            
 
     context = {
         'payday_id': payday_id,
-        'payday_obj': payday_obj
+        'payday_obj': payday_obj,
+        'monthly_expenses': monthly_expenses,
+        'categories': categories,
+        'fixed_costs': fixed_costs,
+        'transactions': transactions,
+        'monthly_net': monthly_net,
+        'me_start_date': me_start_date,
+        'me_end_date': me_end_date
+
     }
 
     return render(request, 'amend_payday.html', context)
