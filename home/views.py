@@ -14,6 +14,9 @@ from django.shortcuts import get_object_or_404
 
 @login_required
 def settings(request):
+    categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
+    fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
+
     if request.method == 'POST':
 
         if 'delete_data' in request.POST:
@@ -25,12 +28,25 @@ def settings(request):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = form.cleaned_data['file']
-            handle_uploaded_file(uploaded_file, request)
+            if handle_uploaded_file(uploaded_file, request):
+                messages.success(request, "Your data has been uploaded successfully.")
+            else:
+                messages.error(request, "An error occurred while uploading your data. Check if the layout of the file is correct.")
+        
+        if 'add_rule' in request.POST:
+            option = request.POST.get('choose_option')
+            print(option)
             
     else:
         form = UploadFileForm()
     
-    return render(request, 'settings.html', {'form': form})
+    context = {
+        'categories': categories,
+        'fixed_costs': fixed_costs, 
+        'form': form,
+    }
+
+    return render(request, 'settings.html', context)
 
 @login_required
 def home(request):   
