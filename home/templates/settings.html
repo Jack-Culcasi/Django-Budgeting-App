@@ -12,8 +12,46 @@
     </div>
 {% endif %}
 
-<div class="flex flex-col items-center justify-center">
-    <div class="flex flex-col items-center w-full max-w-xs mb-4">
+<div class="flex items-start justify-between">
+
+    
+    <div class="flex flex-col items-center w-1/2">
+        <div class="flex items-center justify-center">
+            <div class="flex flex-col">
+                <form method="POST" action="{% url 'settings' %}">
+                    {% csrf_token %}
+                    <h3>Add custom rules</h3>
+    
+                    <label class="form-control w-full max-w-xs">
+                        <div class="label">
+                        <span class="label-text">Transactions which note contains this word(s)</span>
+                        </div>
+                        <input type="text" name="note" placeholder="SuperConveniente" class="input input-bordered w-full max-w-xs" required />
+                    </label>
+    
+                    <label class="form-control w-full max-w-xs">
+                    <div class="label">
+                        <span class="label-text">Will be assigned to this category or fixed cost</span>
+                    </div>
+                    <select class="select select-primary w-full max-w-xs" name="choose_option">
+                        <option disabled selected>Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                        <option disabled selected>Fixed Costs</option>
+                        {% for fixed_cost in fixed_costs %}
+                        <option value="{{ fixed_cost.id }}">{{ fixed_cost.name }}</option>
+                        {% endfor %}
+                    </select>
+                    </label>
+                    <button type="submit" name="add_rule" class="btn btn-primary mt-4 w-1/2">Add rule</button>
+                </form>
+            </div>
+        </div>
+    </div>
+  
+    <div class="w-1/2">
+        <label>Upload custom data file</label>    
         <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
             {{ form.as_p }}
@@ -23,15 +61,17 @@
                 <span id="loadingSpinner" class="loading loading-spinner text-primary hidden"></span>
             </div>
         </form>
-    </div>
-    
-    <form method="POST">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-error" name="delete_data" value="true" onclick="return confirm('Are you sure you want to delete all your data?')">
-            Delete
-        </button>
-    </form>
-</div>
+        <br>
+        <label>Delete user data</label>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-error" name="delete_data" value="true" onclick="return confirm('Are you sure you want to delete all your data?')">
+                Delete
+            </button>
+        </form>
+    </div>  
+  
+  </div>
 
 {% block script %}
 <script src="{% static 'js/spinner.js' %}"></script>
