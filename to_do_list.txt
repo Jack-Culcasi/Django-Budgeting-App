@@ -1,10 +1,16 @@
 - Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add alert and succes messagges
 - Add button to go back (i.e. in Paydays)
-- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC
 - Polish code in view by creating functions on utils.py (i.e. add_transaction)
 - Move JS to separate file
 - Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - amend payday completato
+        - add rule, il pulsante funziona ma printa l-ID, continuare da li
+
+
+
+--- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC / Rules
+
+groceries e pac devono rimanere e non possono essere cancellati
+
