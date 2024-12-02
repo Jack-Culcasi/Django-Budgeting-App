@@ -130,12 +130,16 @@ def handle_uploaded_file(uploaded_file, request):
                     amount=groceries,
                     note=groceries_note
                 )
-                
+            
             except Exception as e:
                 print(f"Error updating everything: {e}")
+                return False
 
         else:
             print(f"Skipping row due to incorrect format: {row}")
+            return False
+
+    return True  
 
 def monthly_variable_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
