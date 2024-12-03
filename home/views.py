@@ -11,16 +11,18 @@ from .forms import UploadFileForm, CSVUploadForm
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+from itertools import chain
 
 @login_required
 def settings(request):
     categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
+    rules = Rule.objects.filter(user=request.user)
 
     if request.method == 'POST':
 
         if 'delete_data' in request.POST:
-            if delete_user_date(request):
+            if delete_user_data(request):
                 messages.success(request, "Your data has been deleted successfully.")
             else:
                 messages.error(request, "An error occurred while deleting your data. Please try again.")
@@ -34,8 +36,33 @@ def settings(request):
                 messages.error(request, "An error occurred while uploading your data. Check if the layout of the file is correct.")
         
         if 'add_rule' in request.POST:
-            option = request.POST.get('choose_option')
-            print(option)
+            chosen_option = request.POST.get('choose_option')
+            note = request.POST.get('note')
+
+            if chosen_option:
+                # Split the value into type and ID
+                option_type, option_id = chosen_option.split('-')
+                option_id = int(option_id)
+
+                if option_type == 'category':
+                    category = Category.objects.get(user=request.user, id=option_id)
+                    Rule.objects.create(
+                        user=request.user,
+                        category=category,
+                        note=note
+                    )
+                elif option_type == 'fixedcost':
+                    fixed_cost = FixedCosts.objects.get(user=request.user, id=option_id)
+                    Rule.objects.create(
+                        user=request.user,
+                        fixed_cost=fixed_cost,
+                        note=note
+                    )
+        
+        if 'delete_rule' in request.POST:
+            rule_id = request.POST.get('delete_rule')
+            rule = Rule.objects.get(user=request.user, id=rule_id)
+            rule.delete()
             
     else:
         form = UploadFileForm()
@@ -44,6 +71,7 @@ def settings(request):
         'categories': categories,
         'fixed_costs': fixed_costs, 
         'form': form,
+        'rules': rules,
     }
 
     return render(request, 'settings.html', context)
@@ -164,7 +192,10 @@ def payday(request):
             
     except IndexError: # Not enough paydays to create MonthlyExpenses
         last_two_paydays = None
+    
     if request.method == 'POST':
+        print(last_two_paydays)
+        print(not last_two_paydays)
         # Get the form data
         amount = Decimal(request.POST.get('amount'))
         payday_date = request.POST.get('date')
@@ -180,12 +211,14 @@ def payday(request):
         )
         # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
         if not last_two_paydays:
+            print('not last_two_paydays')
             monthly_expense = MonthlyExpenses.objects.create(
             payday=payday,
             start_date=start_date,
             end_date=payday_date - timedelta(days=1)
             )
         else:
+            print('else')
             last_two_paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:2]
             # Create the MonthlyExpenses object for the previous month, 
             # the start date is related to the payday date of the previous month, the end date is the last payday date minus one day.
@@ -245,6 +278,7 @@ def transactions(request, payday_id, monthly_expense_id):
     transactions = Transaction.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
     user_categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
+    fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
     if request.method == 'POST':
         if 'to_fixed_costs' in request.POST:
             # Loop through each transaction to get its selected category
@@ -297,7 +331,8 @@ def transactions(request, payday_id, monthly_expense_id):
         'user_categories': user_categories,
         'variable_costs': variable_costs,
         'payday_id': payday_id,
-        'monthly_expense_id': monthly_expense_id
+        'monthly_expense_id': monthly_expense_id,
+        'fixed_costs': fixed_costs
     }
     return render(request, 'transactions.html', context)
 
@@ -538,10 +573,17 @@ def categories(request):
 @login_required
 def payday_fixed_costs(request, payday_id, monthly_expense_id):
     payday = Payday.objects.get(user=request.user, id=payday_id)
-    # (Possible) Problem here! monthly_expenses not found because of wrong combination of ids
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday, id=monthly_expense_id)
-    user_fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
+    # Retrieve Fixed Costs related to the current Monthly Expenses
+    me_fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses=monthly_expenses)
+    # Retrieve Fixed Costs not related to any Monthly Expenses
+    user_fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
+    # Filter out user_fixed_costs with names that already exist in me_fixed_costs
+    user_fixed_costs_filtered = user_fixed_costs.exclude(name__in=me_fixed_costs.values_list('name', flat=True))
+    # Combine the two querysets
+    final_fixed_costs = chain(me_fixed_costs, user_fixed_costs_filtered)
+    
 
     if request.method == 'POST':
         new_amounts = request.POST.getlist('new_amount') # [500, 300]
@@ -549,12 +591,12 @@ def payday_fixed_costs(request, payday_id, monthly_expense_id):
         
         if fixed_cost_ids: # Post request comes from payday_fixed_costs.html
 
-            # Create new FixedCosts object using fixed_cost_ids and new_amounts and update the general object without ME
+            # Create or update new FixedCosts object using fixed_cost_ids and new_amounts and update the general object without ME
             if create_and_update_fixed_cost(request, new_amounts, fixed_cost_ids, monthly_expenses):
                 return redirect('deductions', payday_id=payday_id, monthly_expense_id=monthly_expense_id)
 
     context = {
-        'user_fixed_costs': user_fixed_costs,
+        'final_fixed_costs': final_fixed_costs,
         'payday': payday,
         'variable_costs': variable_costs,
         'monthly_expense_id': monthly_expense_id,
