@@ -34,20 +34,59 @@
                         <span class="label-text">Will be assigned to this category or fixed cost</span>
                     </div>
                     <select class="select select-primary w-full max-w-xs" name="choose_option">
-                        <option disabled selected>Categories</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id }}">{{ category.name }}</option>
-                        {% endfor %}
-                        <option disabled selected>Fixed Costs</option>
-                        {% for fixed_cost in fixed_costs %}
-                        <option value="{{ fixed_cost.id }}">{{ fixed_cost.name }}</option>
-                        {% endfor %}
-                    </select>
+                        <option disabled selected>Select an Option</option>
+                        <optgroup label="Categories">
+                            {% for category in categories %}
+                            <option value="category-{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="Fixed Costs">
+                            {% for fixed_cost in fixed_costs %}
+                            <option value="fixedcost-{{ fixed_cost.id }}">{{ fixed_cost.name }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>                    
                     </label>
                     <button type="submit" name="add_rule" class="btn btn-primary mt-4 w-1/2">Add rule</button>
                 </form>
             </div>
         </div>
+        <br>
+        <div class="overflow-x-auto">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Rule</th>
+                  <th>Note</th>
+                  <th>Target</th>
+                  <th></th>
+                </tr>
+              </thead>
+              {% for rule in rules %}
+              <tbody>
+                <tr>
+                  <td></td>
+                  <td>{{ rule.note }}</td>
+                  <td>
+                    {% if rule.category %}
+                        {{ rule.category.name }}
+                    {% elif rule.fixed_cost %}
+                        {{ rule.fixed_cost.name }}
+                    {% endif %}
+                  </td>
+                  <th>
+                    <form method="POST" action="{% url 'settings' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-error" name="delete_rule" value="{{ rule.id }}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                    </form>
+                  </th>
+                </tr>
+              </tbody>
+              {% endfor %}
+            </table>
+          </div>
     </div>
   
     <div class="w-1/2">
