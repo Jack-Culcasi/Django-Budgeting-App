@@ -1,12 +1,11 @@
 - Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add alert and succes messagges
-- Add button to go back (i.e. in Paydays)
 - Polish code in view by creating functions on utils.py (i.e. add_transaction)
 - Move JS to separate file
 - Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - add rule, il pulsante funziona ma printa l-ID, continuare da li
+        - add rule funziona, transaction funziona, tutto noce
 
 
 
