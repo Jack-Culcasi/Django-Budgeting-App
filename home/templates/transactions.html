@@ -10,9 +10,36 @@
     <li class="step">Savings</li>    
 </ul>
 <br>
-<div class="flex justify-center">
-    <h3>Total transactions: {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</h3>
+<div class="flex justify-center items-center">
+    <div>
+        <h3>Total transactions: {{ user.userpreferences.currency_symbol }} {{ variable_costs }}</h3>
+        {% if fixed_costs %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fixed Cost</th>
+                    <th>Amount</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fixed_cost in fixed_costs %}
+                <tr>
+                    <td>{{ fixed_cost.name }}</td>
+                    <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+                    <td>
+                        {% if fixed_cost.note %}
+                            {{ fixed_cost.note }}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
 </div>
+
 <div class="flex justify-center">
 <form method="POST" action="{% url 'transactions' payday_id=payday_id monthly_expense_id=monthly_expense_id %}">
     {% csrf_token %}
