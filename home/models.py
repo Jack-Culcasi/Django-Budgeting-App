@@ -7,6 +7,19 @@ class UserPreferences(models.Model):
 
     def __str__(self):
         return f"Preferences: Currency {self.currency_symbol}"
+    
+class Rule(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.ForeignKey('Category', null=True, blank=True, on_delete=models.CASCADE)
+    fixed_cost = models.ForeignKey('FixedCosts', null=True, blank=True, on_delete=models.CASCADE)
+    note = models.TextField(blank=True)
+
+    def __str__(self):
+        if self.category:
+            return f"Rule for Category: {self.category.name}"
+        elif self.fixed_cost:
+            return f"Rule for Fixed Cost: {self.fixed_cost.name}"
+        return "Unassigned Rule"
 
 class Payday(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='paydays')
@@ -63,7 +76,7 @@ class Category(models.Model):
     note = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f'Name: {self.name}, ME id: {self.monthly_expenses.id}, Amount: {self.amount}'
+        return f'Name: {self.name}, ME id: , Amount: {self.amount}'
     
     def get_transactions_amount(self):
         try:
