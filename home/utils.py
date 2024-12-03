@@ -6,18 +6,18 @@ from datetime import datetime
 import csv
 from io import TextIOWrapper
 
-def delete_user_date(request):
+def delete_user_data(request):
     user = request.user
     try:
         # Delete related objects in reverse order of dependency
         NetWorth.objects.filter(user=user).delete()
-        #Pension.objects.filter(user=user).delete()
-        #Bank.objects.filter(user=user).delete()
-        #Investment.objects.filter(broker__user=user).delete()
-        #Broker.objects.filter(user=user).delete()
-        #FixedCosts.objects.filter(user=user).delete()
+        Pension.objects.filter(user=user).delete()
+        Bank.objects.filter(user=user).delete()
+        Investment.objects.filter(broker__user=user).delete()
+        Broker.objects.filter(user=user).delete()
+        FixedCosts.objects.filter(user=user).delete()
         Transaction.objects.filter(user=user).delete()
-        #Category.objects.filter(user=user).delete()
+        Category.objects.filter(user=user).delete()
         MonthlyExpenses.objects.filter(payday__user=user).delete()
         Payday.objects.filter(user=user).delete()
         #UserPreferences.objects.filter(user=user).delete()
@@ -30,27 +30,66 @@ def delete_user_date(request):
 def handle_csv_file(request, csv_file, monthly_expenses):
     csv_reader = csv.DictReader(TextIOWrapper(csv_file.file, encoding='utf-8'))
     try:
+        # Fetch all rules for the current user
+        rules = Rule.objects.filter(user=request.user)
+
         for row in csv_reader:
             transaction_type = row['Transaction Type']
             if transaction_type == 'Purchase':
+                # Extract transaction details
                 date = row['Date']
                 time = row['Time']
                 description = row['Transaction Description']
                 amount = Decimal(row['Amount'])
                 combined_note = f"{date} - {time}\n{description}".strip()
-                # Create Transaction
+
+                # Initialize category or fixed cost as None
+                matched_category = None
+                matched_fixed_cost = None
+
+                # Apply rules by matching against the rule's note
+                for rule in rules:
+                    if rule.note and rule.note.lower() in description.lower():
+                        if rule.category:
+                            matched_category = rule.category
+                        elif rule.fixed_cost:
+                            matched_fixed_cost = rule.fixed_cost
+                            # Check if a fixed cost with the same name exists already
+                            existing_fixed_cost = FixedCosts.objects.filter(
+                                user=request.user,
+                                monthly_expenses=monthly_expenses,
+                                name=matched_fixed_cost.name
+                            ).first()
+
+                            if existing_fixed_cost:
+                                # If exists, update the amount by adding the current transaction's amount
+                                existing_fixed_cost.amount += abs(amount)
+                                existing_fixed_cost.save()
+                            else:
+                                # If not, create a new fixed cost
+                                FixedCosts.objects.create(
+                                    user=request.user,
+                                    monthly_expenses=monthly_expenses,
+                                    name=matched_fixed_cost.name,
+                                    amount=abs(amount)                
+                                )
+                        break  # Stop checking once a match is found
+
+                # Create the transaction and associate it with the matched rule
                 new_transaction = Transaction.objects.create(
                     user=request.user,
                     monthly_expenses=monthly_expenses,
                     amount=abs(amount),
-                    note=combined_note
+                    note=combined_note,
+                    category=matched_category  # Associate with the matched category
                 )
-      
+
         return True
-    
+
     except Exception as e:
-                print(f"Error updating everything: {e}")
-                return False
+        print(f"Error processing CSV: {e}")
+        return False
+
 
 
 def handle_uploaded_file(uploaded_file, request):
@@ -247,12 +286,15 @@ def create_and_update_fixed_cost(request, new_amounts, fixed_cost_ids, monthly_e
         # Create a new fixed_costs object related to the monthly expenses
         for element in amount_ids_list:
             fixed_cost = FixedCosts.objects.get(user=request.user, id=element[0])
-            new_fixed_costs = FixedCosts.objects.create(
-                user=request.user,
-                monthly_expenses=monthly_expenses,
-                name = fixed_cost.name,
-                amount=element[1]                
-                )
+            # Check if the fixed cost already exists within the ME (because added when uploading the transactions file)
+            if fixed_cost.monthly_expenses == None:
+                new_fixed_costs = FixedCosts.objects.create(
+                    user=request.user,
+                    monthly_expenses=monthly_expenses,
+                    name = fixed_cost.name,
+                    amount=element[1]                
+                    )
+                
             # Update Fixed Cost record without ME 
             fixed_cost.amount = element[1] 
             fixed_cost.save()
