@@ -152,7 +152,7 @@ class FixedCosts(models.Model):
     note = models.CharField(max_length=255, null=True, blank=True)  
 
     def __str__(self):
-        return f"{self.name}: ({self.amount}, {self.monthly_expenses})"
+        return f"{self.name}: ({self.amount}, {self.monthly_expenses.id})"
     
     def difference_with_last_month(self):
         # Find the previous month's expenses
