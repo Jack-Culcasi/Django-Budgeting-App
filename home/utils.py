@@ -62,17 +62,25 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                             ).first()
 
                             if existing_fixed_cost:
+                                print(existing_fixed_cost)
                                 # If exists, update the amount by adding the current transaction's amount
                                 existing_fixed_cost.amount += abs(amount)
+                                # In order to avoid counting the transaction twice (as fixed cost and as transaction), subtract the fixed_cost amount to the ME amount
+                                monthly_expenses.amount = -amount
+                                monthly_expenses.save()
                                 existing_fixed_cost.save()
                             else:
+                                print('else')
                                 # If not, create a new fixed cost
-                                FixedCosts.objects.create(
+                                new_fixed_cost = FixedCosts.objects.create(
                                     user=request.user,
                                     monthly_expenses=monthly_expenses,
                                     name=matched_fixed_cost.name,
                                     amount=abs(amount)                
                                 )
+                                print(new_fixed_cost)
+                                monthly_expenses.amount = -amount
+                                monthly_expenses.save()
                         break  # Stop checking once a match is found
 
                 # Create the transaction and associate it with the matched rule
@@ -381,7 +389,7 @@ def update_monthly_expenses(request, monthly_expenses, payday):
         monthly_expenses.misc = misc_amount + transactions_without_category
 
         # Update total amount
-        monthly_expenses.amount = (
+        monthly_expenses.amount += (
             monthly_expenses.utilities 
             + monthly_expenses.groceries 
             + monthly_expenses.misc
