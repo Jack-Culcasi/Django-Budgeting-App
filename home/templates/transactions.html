@@ -39,7 +39,7 @@
         {% endif %}
     </div>
 </div>
-
+<br>
 <div class="flex justify-center">
 <form method="POST" action="{% url 'transactions' payday_id=payday_id monthly_expense_id=monthly_expense_id %}">
     {% csrf_token %}
