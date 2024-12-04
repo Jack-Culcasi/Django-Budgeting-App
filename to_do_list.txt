@@ -5,7 +5,7 @@
 - Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - add rule funziona, transaction funziona, tutto noce
+        - deductions deve sottrare whole and split amount alle rispettive categorie e costi fissi, controllare logica
 
 
 
