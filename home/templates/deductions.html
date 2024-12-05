@@ -46,65 +46,65 @@
           <br>
           <p>Deduct whole or split categories and fixed costs:</p>
           <div class="overflow-x-auto">
-              <table class="table">
-              <!-- head -->
-              <thead>
-                  <tr>
-                      <th></th>
-                      <th></th>
-                      <th>Deduct</th>
-                      <th>Split</th>
-                  </tr>
-              </thead>
-              {% for fixed_cost in fixed_costs %}
-              <tbody>
-                  <tr>
-                      <th>{{ fixed_cost.name }}</th>
-                      <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
-                      <td>
-                          <input 
-                              type="checkbox" 
-                              class="checkbox full-cost" 
-                              name="full_cost" 
-                              data-row="{{ forloop.counter }}" 
-                              value="{{ fixed_cost.amount }}" />
-                      </td>
-                      <td>
-                          <input 
-                              type="checkbox" 
-                              class="checkbox split-cost" 
-                              name="split_cost" 
-                              data-row="{{ forloop.counter }}" 
-                              value="{{ fixed_cost.amount }}" />
-                      </td>
-                  </tr>
-              </tbody>
-              {% endfor %}
-              {% for category in categories %}
-              <tbody>
-                  <tr>
-                      <th>{{ category.name }}</th>
-                      <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
-                      <td>
-                          <input 
-                              type="checkbox" 
-                              class="checkbox full-cost" 
-                              name="full_cost" 
-                              data-row="{{ forloop.counter }}" 
-                              value="{{ category.amount }}" />
-                      </td>
-                      <td>
-                          <input 
-                              type="checkbox" 
-                              class="checkbox split-cost" 
-                              name="split_cost" 
-                              data-row="{{ forloop.counter }}" 
-                              value="{{ category.amount }}" />
-                      </td>
-                  </tr>
-              </tbody>
-              {% endfor %}
-              </table>
+            <table class="table">
+                <!-- head -->
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th>Deduct</th>
+                        <th>Split</th>
+                    </tr>
+                </thead>
+                {% for fixed_cost in fixed_costs %}
+                <tbody>
+                    <tr>
+                        <th>{{ fixed_cost.name }}</th>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
+                        <td>
+                            <input 
+                                type="checkbox" 
+                                class="checkbox full-cost" 
+                                name="full_cost" 
+                                data-row="{{ forloop.counter }}" 
+                                value="fixedcost-{{ fixed_cost.id }}" />
+                        </td>
+                        <td>
+                            <input 
+                                type="checkbox" 
+                                class="checkbox split-cost" 
+                                name="split_cost" 
+                                data-row="{{ forloop.counter }}" 
+                                value="fixedcost-{{ fixed_cost.id }}" />
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+                {% for category in categories %}
+                <tbody>
+                    <tr>
+                        <th>{{ category.name }}</th>
+                        <td>{{ user.userpreferences.currency_symbol }} {{ category.amount }}</td>
+                        <td>
+                            <input 
+                                type="checkbox" 
+                                class="checkbox full-cost" 
+                                name="full_cost" 
+                                data-row="{{ forloop.counter }}" 
+                                value="category-{{ category.id }}" />
+                        </td>
+                        <td>
+                            <input 
+                                type="checkbox" 
+                                class="checkbox split-cost" 
+                                name="split_cost" 
+                                data-row="{{ forloop.counter }}" 
+                                value="category-{{ category.id }}" />
+                        </td>
+                    </tr>
+                </tbody>
+                {% endfor %}
+            </table>            
           </div> 
 
           <!-- Submit button -->
