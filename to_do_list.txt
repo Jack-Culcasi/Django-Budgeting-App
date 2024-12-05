@@ -5,7 +5,7 @@
 - Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - deductions deve sottrare whole and split amount alle rispettive categorie e costi fissi, controllare logica
+        - deductions funziona correttamente 
 
 
 
