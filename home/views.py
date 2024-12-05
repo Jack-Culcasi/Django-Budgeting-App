@@ -639,14 +639,16 @@ def deductions(request, payday_id, monthly_expense_id):
     variable_costs = monthly_variable_costs(request, payday_id, monthly_expense_id)
     total_fixed_costs = monthly_fixed_costs(request, payday_id, monthly_expense_id)
     if request.method == 'POST':
-        deduction_amount = request.POST.get('deduction_amounts', 0)
+        deduction_amount = request.POST.get('deduction_amounts')
         if deduction_amount == '': # If there is no input 
             deduction_amount = 0
         full_amounts = request.POST.getlist('full_cost')
         split_fixed_costs = request.POST.getlist('split_cost')
-        monthly_expenses.deductions += get_deductions(full_amounts, split_fixed_costs, deduction_amount)
-        monthly_expenses.save()
-        return redirect('payday_investments', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
+        # The function retrieves objects from the amounts and subtracts the amount directly from the objects
+        if adjust_fixedcosts_categories(request, full_amounts, split_fixed_costs):
+            monthly_expenses.deductions += Decimal(deduction_amount)
+            monthly_expenses.save()
+            return redirect('payday_investments', payday_id=payday.id, monthly_expense_id=monthly_expense_id)
 
     context = {
         'fixed_costs': fixed_costs,
