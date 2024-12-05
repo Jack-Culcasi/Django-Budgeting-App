@@ -62,7 +62,6 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                             ).first()
 
                             if existing_fixed_cost:
-                                print(existing_fixed_cost)
                                 # If exists, update the amount by adding the current transaction's amount
                                 existing_fixed_cost.amount += abs(amount)
                                 # In order to avoid counting the transaction twice (as fixed cost and as transaction), subtract the fixed_cost amount to the ME amount
@@ -70,7 +69,6 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                                 monthly_expenses.save()
                                 existing_fixed_cost.save()
                             else:
-                                print('else')
                                 # If not, create a new fixed cost
                                 new_fixed_cost = FixedCosts.objects.create(
                                     user=request.user,
@@ -78,7 +76,6 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                                     name=matched_fixed_cost.name,
                                     amount=abs(amount)                
                                 )
-                                print(new_fixed_cost)
                                 monthly_expenses.amount = -amount
                                 monthly_expenses.save()
                         break  # Stop checking once a match is found
@@ -219,6 +216,58 @@ def get_deductions(full_amounts, split_fixed_costs, deduction_amount):
         deductions += float(amount) / 2
     return Decimal(deductions)
 
+def adjust_fixedcosts_categories(request, full_cost_values, split_cost_values):
+        # This function directly subtracts full and split deductions from the objects
+        # Initialize containers for selected objects
+        full_fixed_costs = []
+        split_fixed_costs = []
+        full_categories = []
+        split_categories = []
+        try:
+            # Process full-cost checkboxes
+            for value in full_cost_values:
+                object_type, object_id = value.split('-')  # Extract type and ID (i.e. fixedcost-{{ fixed_cost.id }} )
+                object_id = int(object_id)
+
+                if object_type == "fixedcost":
+                    # Fetch and append the FixedCost object
+                    full_fixed_costs.append(FixedCosts.objects.get(user=request.user, id=object_id))
+                elif object_type == "category":
+                    # Fetch and append the Category object
+                    full_categories.append(Category.objects.get(user=request.user, id=object_id))
+
+            # Process split-cost checkboxes (same logic as above)
+            for value in split_cost_values:
+                object_type, object_id = value.split('-')
+                object_id = int(object_id)
+
+                if object_type == "fixedcost":
+                    split_fixed_costs.append(FixedCosts.objects.get(user=request.user, id=object_id))
+                elif object_type == "category":
+                    split_categories.append(Category.objects.get(user=request.user, id=object_id))
+
+            for full_fixed_cost in full_fixed_costs:
+                full_fixed_cost.amount = 0
+                full_fixed_cost.save()
+            for split_fixed_cost in split_fixed_costs:
+                split_fixed_cost.amount /= 2
+                split_fixed_cost.save()
+
+            for full_category in full_categories:
+                full_category.amount = 0
+                full_category.save()
+            for split_category in split_categories:
+                split_category.amount /= 2
+                split_category.save()
+
+            return True            
+            
+        except Exception as e:
+            print(f"Error adjust_fixedcosts_categories: {e}")
+            return False  
+
+        
+
 def update_investments(request, new_amounts, investment_ids, broker_ids):
     try:
         # Create a list of lists containing [investment_id, new_amount, broker_id]
@@ -240,7 +289,7 @@ def update_investments(request, new_amounts, investment_ids, broker_ids):
         return True    
     
     except Exception as e:
-        # Log the exception if needed
+        
         print(f"Error updating investments: {e}")
         return False  
     
@@ -260,7 +309,7 @@ def update_pensions(request, new_amounts, pension_ids):
         return True    
     
     except Exception as e:
-        # Log the exception if needed
+        
         print(f"Error updating pension: {e}")
         return False  
     
@@ -280,7 +329,7 @@ def update_savings(request, new_amounts, bank_ids):
         return True    
     
     except Exception as e:
-        # Log the exception if needed
+        
         print(f"Error updating pension: {e}")
         return False  
     
@@ -310,7 +359,7 @@ def create_and_update_fixed_cost(request, new_amounts, fixed_cost_ids, monthly_e
         return True
     
     except Exception as e:
-        # Log the exception if needed
+        
         print(f"Error updating or creating fixed_cost: {e}")
         return False  
     
