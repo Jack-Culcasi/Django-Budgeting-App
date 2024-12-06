@@ -2,12 +2,9 @@
 - Add alert and succes messagges
 - Polish code in view by creating functions on utils.py (i.e. add_transaction)
 - Move JS to separate file
-- Adjust years when searching for a payday or net worth
 
 - Dove ho lasciato: 
-        - deductions funziona correttamente 
-
-
+        - currency symbol implemented, custom PAC now implemented, tutto noce
 
 --- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC / Rules
 
