@@ -39,8 +39,8 @@
         <label class="label">
           <span class="label-text">Select Month</span>
         </label>
-        <select class="select select-primary w-full max-w-xs" name="month">
-          <option disabled selected>Month</option>
+        <select class="select select-primary w-full max-w-xs" name="month" required>
+          <option value="" disabled selected>Month</option>
           <option value="January">January</option>
           <option value="February">February</option>
           <option value="March">March</option>
@@ -61,13 +61,11 @@
         <label class="label">
           <span class="label-text">Select Year</span>
         </label>
-        <select class="select select-primary w-full max-w-xs" name="year">
-          <option disabled selected>Year</option>
-          <option value="2023">23</option>
-          <option value="2024">2024</option>
-          <option value="2025">2025</option>
-          <option value="2026">2026</option>
-          <option value="2027">2027</option>
+        <select class="select select-primary w-full max-w-xs" name="year" required>
+          <option value="" disabled selected>Year</option>
+          {% for year in years %}
+              <option value="{{ year }}">{{ year }}</option>
+          {% endfor %}
         </select>
       </div>
       <div class="flex flex-col items-start">
