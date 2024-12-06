@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 class UserPreferences(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     currency_symbol = models.CharField(max_length=5, default='£')  
+    main_investment = models.ForeignKey('Investment', null=True, blank=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"Preferences: Currency {self.currency_symbol}"
