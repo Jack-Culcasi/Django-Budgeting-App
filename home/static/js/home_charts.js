@@ -14,7 +14,8 @@ const expensesValues = graphData.expenses_values;  // Y-axis (expenses values)
 const savings = graphData.savings; 
 const investments = graphData.investments;
 const pension = graphData.pensions;
-const pac = graphData.pac;
+const pac = graphData.pac; 
+const pac_name = graphData.pac_name;
 const net_worth_note = graphData.net_worth_notes; 
 const monthly_expenses_note = graphData.monthly_expenses_notes;
 
@@ -201,7 +202,7 @@ const ctx_4 = document.getElementById('myPieChart').getContext('2d');
 const myPieChart = new Chart(ctx_4, {
     type: 'pie',
     data: {
-        labels: ['Savings', 'Investments', 'PAC', 'Pension'],
+        labels: ['Savings', 'Investments', pac_name, 'Pension'],
         datasets: [{
             label: 'Amount',
             data: [savings, investments, pac, pension],
