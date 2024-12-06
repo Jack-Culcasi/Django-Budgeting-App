@@ -18,6 +18,18 @@ def settings(request):
     categories = Category.objects.filter(user=request.user, monthly_expenses__isnull=True)
     fixed_costs = FixedCosts.objects.filter(user=request.user, monthly_expenses__isnull=True)
     rules = Rule.objects.filter(user=request.user)
+    investments = Investment.objects.filter(broker__user=request.user)
+    user_pref = UserPreferences.objects.get(user=request.user)
+
+    if user_pref.main_investment == None:
+        print('ci io')
+        try:
+            first_investment = Investment.objects.filter(broker__user=request.user).first()
+            user_pref.main_investment = first_investment
+            user_pref.save()
+        except:
+            pass
+
 
     if request.method == 'POST':
 
@@ -63,6 +75,19 @@ def settings(request):
             rule_id = request.POST.get('delete_rule')
             rule = Rule.objects.get(user=request.user, id=rule_id)
             rule.delete()
+
+        if 'currency_symbol' in request.POST:
+            currency_symbol = request.POST.get('currency_symbol')
+            user_pref.currency_symbol = currency_symbol
+            user_pref.save()
+
+        if 'main_investment' in request.POST:
+            main_investment_id = request.POST.get('main_investment')
+            main_investment = check_user_investment(request, main_investment_id)
+            user_pref.main_investment = main_investment
+            user_pref.save()
+            
+            
             
     else:
         form = UploadFileForm()
@@ -72,6 +97,7 @@ def settings(request):
         'fixed_costs': fixed_costs, 
         'form': form,
         'rules': rules,
+        'investments': investments
     }
 
     return render(request, 'settings.html', context)
@@ -103,7 +129,7 @@ def home(request):
         pensions = Pension.objects.filter(user=request.user)
         last_net_worth = NetWorth.objects.filter(user=request.user).order_by('-date').first()
         investments = Investment.objects.filter(broker__user=request.user)
-        pac = Investment.objects.get(broker__user=request.user, name='PAC')
+        pac = UserPreferences.objects.get(user=request.user).main_investment
         # Data for graph
         net_worths = NetWorth.objects.filter(user=request.user).order_by('date')  # Order by date
         # Extract dates and net worth values for chart
@@ -116,11 +142,13 @@ def home(request):
         # Extract expenses for chart
         expenses_values = [net_worth.payday.get_expenses().amount for net_worth in net_worths]
         # Extract investments excluding PAC
-        investments_no_pac = last_net_worth.total_investments - pac.amount
+        investments_no_pac = last_net_worth.total_investments - (pac.amount if pac else 0)
         # net worth notes
         net_worth_notes = [net_worth.note for net_worth in net_worths]
         # Monthly expenses notes
         monthly_expenses_notes = [monthly_expense.note for monthly_expense in monthly_expenses]
+        # Years for search field
+        years = [payday.payday_date.year for payday in paydays]
 
         graph_data = {
             'dates': dates,
@@ -131,7 +159,8 @@ def home(request):
             'savings': last_net_worth.total_savings,
             'investments': investments_no_pac ,
             'pensions': last_net_worth.total_pension,
-            'pac': pac.amount,
+            'pac': pac.amount if pac else 0,
+            'pac_name': pac.name if pac else '',
             'net_worth_notes': net_worth_notes,
             'monthly_expenses_notes': monthly_expenses_notes
         }
@@ -173,7 +202,8 @@ def home(request):
         'pac': pac,
         'graph_data': graph_data,
         'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
-        'results': results
+        'results': results,
+        'years': years
         }   
     else:
         context = {
@@ -417,6 +447,8 @@ def delete_transaction(request, payday_id=None, monthly_expense_id=None, transac
 def paydays(request):
     paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:12] # Only show last 12 months paydays
     monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
+    # Years for search field
+    years = [payday.payday_date.year for payday in Payday.objects.filter(user=request.user)]
 
     if request.method == 'POST':
 
@@ -437,6 +469,7 @@ def paydays(request):
     context = {
         'paydays': paydays,
         'monthly_expenses': monthly_expenses,
+        'years': years
     }
 
     return render(request, 'paydays.html', context)
