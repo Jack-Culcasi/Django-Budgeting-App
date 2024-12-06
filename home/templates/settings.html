@@ -90,6 +90,33 @@
     </div>
   
     <div class="w-1/2">
+        <label>Select main investment</label>
+        <span class="tooltip-icon" title="It will show up on the pie chart and label in Overview">&#9432;</span>
+        <form method="POST">
+            {% csrf_token %}
+            <select class="select select-primary max-w-xs" name="main_investment">
+                {% for investment in investments %}
+                <option value="{{ investment.id }}">{{ investment.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check"></i>
+            </button>
+        </form>
+        <br>
+        <label>Select currency symbol</label>
+        <form method="POST">
+            {% csrf_token %}
+            <select class="select select-primary max-w-xs" name="currency_symbol">
+                <option value="£">£</option>
+                <option value="€">€</option>
+                <option value="$">$</option>
+            </select>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-check"></i>
+            </button>
+        </form>
+        <br>
         <label>Upload custom data file</label>    
         <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
