@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 
 class UserPreferences(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
@@ -78,6 +79,12 @@ class Category(models.Model):
 
     def __str__(self):
         return f'Name: {self.name}, ME id: , Amount: {self.amount}'
+    
+    def delete(self, *args, **kwargs):
+        # Prevent deletion if the category name is "Groceries"
+        if self.name == "Groceries":
+            raise PermissionDenied("You cannot delete the Groceries category.")
+        super().delete(*args, **kwargs)
     
     def get_transactions_amount(self):
         try:
