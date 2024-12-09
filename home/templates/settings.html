@@ -135,6 +135,14 @@
                 Delete
             </button>
         </form>
+        <br>
+        <label>Delete user</label>
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-error" name="delete_user" value="true" onclick="return confirm('Are you sure you want to delete your account?')">
+                Delete
+            </button>
+        </form>
     </div>  
   
   </div>
