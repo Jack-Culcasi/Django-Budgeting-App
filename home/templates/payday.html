@@ -74,7 +74,9 @@
     </form>
 
   {% else %}
-    <h1>Please add a bank, fixed cost and category first.</h1>
+  <div class="alert alert-error">
+    Please add a bank, fixed cost and category first.
+</div>
   {% endif %}
 
 {% endblock %}
