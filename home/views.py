@@ -10,8 +10,20 @@ from decimal import Decimal
 from .forms import UploadFileForm, CSVUploadForm
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
+from .forms import CustomUserCreationForm
 from django.shortcuts import get_object_or_404
 from itertools import chain
+
+def signup(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your account has been created! You can now log in.')
+            return redirect('login')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'signup.html', {'form': form})
 
 @login_required
 def settings(request):
@@ -22,14 +34,12 @@ def settings(request):
     user_pref = UserPreferences.objects.get(user=request.user)
 
     if user_pref.main_investment == None:
-        print('ci io')
         try:
             first_investment = Investment.objects.filter(broker__user=request.user).first()
             user_pref.main_investment = first_investment
             user_pref.save()
         except:
             pass
-
 
     if request.method == 'POST':
 
@@ -38,6 +48,16 @@ def settings(request):
                 messages.success(request, "Your data has been deleted successfully.")
             else:
                 messages.error(request, "An error occurred while deleting your data. Please try again.")
+
+        if 'delete_user' in request.POST:
+            try:
+                user = request.user  
+                user.delete()
+                messages.success(request, "Your account has been deleted successfully.")                
+                return redirect('login')  
+            except Exception as e:
+                messages.error(request, f"An error occurred while deleting the account: {str(e)}")
+                return redirect('home') 
 
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
@@ -85,9 +105,7 @@ def settings(request):
             main_investment_id = request.POST.get('main_investment')
             main_investment = check_user_investment(request, main_investment_id)
             user_pref.main_investment = main_investment
-            user_pref.save()
-            
-            
+            user_pref.save()           
             
     else:
         form = UploadFileForm()
@@ -103,7 +121,7 @@ def settings(request):
     return render(request, 'settings.html', context)
 
 @login_required
-def home(request):   
+def home(request):
     # Determine to show the completion bar 
     payday_exists = request.user.paydays.exists() 
     # Determine completion based on existing data for each step
@@ -113,7 +131,7 @@ def home(request):
         "add_broker": request.user.brokers.exists(),
         "add_fixed_cost": request.user.fixedcosts_set.exists(),
         "add_investment": request.user.brokers.filter(investments__isnull=False).exists(),
-        "add_categories": request.user.category_set.exists(),
+        "add_categories": request.user.category_set.exclude(name="Groceries").exists(),
     }
     # If payday/networth record
     if NetWorth.objects.filter(user=request.user).exists():
@@ -588,7 +606,12 @@ def categories(request):
             category_name = Category.objects.get(user=request.user, id=category_id).name
             categories_to_be_deleted = Category.objects.filter(user=request.user, name=category_name)
             for category in categories_to_be_deleted:
-                category.delete()
+                try:
+                    category.delete()
+                    messages.success(request, "Category successfully deleted.")
+                except PermissionDenied:
+                    messages.error(request, "You cannot delete this category.")
+                    return redirect('categories')
         else: # Add category
             category_name = request.POST.get('name')
             category_note = request.POST.get('note', None)
