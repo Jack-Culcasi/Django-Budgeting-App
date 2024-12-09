@@ -1,12 +1,10 @@
-- Complete user registration process, included signals.py (premade categories and fixed costs)
 - Add alert and succes messagges
 - Polish code in view by creating functions on utils.py (i.e. add_transaction)
 - Move JS to separate file
+- Custom CSV uploader (user fills given fields such as "amount", "date", "note" etc...)
+- Add guide
+- Number input fields must accepts decimals
 
 - Dove ho lasciato: 
-        - polished index and login
-
---- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC / Rules
-
-groceries e pac devono rimanere e non possono essere cancellati
+        - user registration completata, signals completato, noce
 
