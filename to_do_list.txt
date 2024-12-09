@@ -4,7 +4,7 @@
 - Move JS to separate file
 
 - Dove ho lasciato: 
-        - currency symbol implemented, custom PAC now implemented, tutto noce
+        - polished index and login
 
 --- Add modularity (categories, fixed costs etc...), adjust hardcoded Groceries and PAC / Rules
 
