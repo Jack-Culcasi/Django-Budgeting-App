@@ -1,10 +1,6 @@
-- Add alert and succes messagges
-- Polish code in view by creating functions on utils.py (i.e. add_transaction)
-- Move JS to separate file
 - Custom CSV uploader (user fills given fields such as "amount", "date", "note" etc...)
 - Add guide
-- Number input fields must accepts decimals
 
 - Dove ho lasciato: 
-        - user registration completata, signals completato, noce
+        - aggiunto custom csv fields in settings, fare dovuti collegamenti
 
