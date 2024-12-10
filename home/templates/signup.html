@@ -1,5 +1,14 @@
 {% extends "index.html" %}
 {% block start %}
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 <br>
 <div class="flex items-start justify-center min-h-screen bg-primary-100">
     <div class="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
