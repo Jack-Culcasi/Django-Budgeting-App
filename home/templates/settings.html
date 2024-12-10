@@ -1,7 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
 {% load static %}
-
 {% if messages %}
     <div>
         {% for message in messages %}
@@ -12,9 +11,7 @@
     </div>
 {% endif %}
 
-<div class="flex items-start justify-between">
-
-    
+<div class="flex items-start justify-between">    
     <div class="flex flex-col items-center w-1/2">
         <div class="flex items-center justify-center">
             <div class="flex flex-col">
@@ -89,63 +86,135 @@
           </div>
     </div>
   
-    <div class="w-1/2">
-        <label>Select main investment</label>
-        <span class="tooltip-icon" title="It will show up on the pie chart and label in Overview">&#9432;</span>
-        <form method="POST">
-            {% csrf_token %}
-            <select class="select select-primary max-w-xs" name="main_investment">
-                {% for investment in investments %}
-                <option value="{{ investment.id }}">{{ investment.name }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-check"></i>
-            </button>
-        </form>
-        <br>
-        <label>Select currency symbol</label>
-        <form method="POST">
-            {% csrf_token %}
-            <select class="select select-primary max-w-xs" name="currency_symbol">
-                <option value="£">£</option>
-                <option value="€">€</option>
-                <option value="$">$</option>
-            </select>
-            <button type="submit" class="btn btn-primary">
-                <i class="fas fa-check"></i>
-            </button>
-        </form>
-        <br>
-        <label>Upload custom data file</label>    
-        <form method="post" enctype="multipart/form-data" id="uploadForm">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <div class="flex items-center gap-2 mt-4">
-                <button type="submit" class="btn btn-primary">Upload</button>
-                <!-- Spinner initially hidden -->
-                <span id="loadingSpinner" class="loading loading-spinner text-primary hidden"></span>
-            </div>
-        </form>
-        <br>
-        <label>Delete user data</label>
-        <form method="POST">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-error" name="delete_data" value="true" onclick="return confirm('Are you sure you want to delete all your data?')">
-                Delete
-            </button>
-        </form>
-        <br>
-        <label>Delete user</label>
-        <form method="POST">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-error" name="delete_user" value="true" onclick="return confirm('Are you sure you want to delete your account?')">
-                Delete
-            </button>
-        </form>
+    <div class="w-1/2 grid grid-cols-2 gap-4">
+        <!-- Upload Custom Data File -->
+        <div>
+            <label>Upload custom data file</label>    
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="flex items-center gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                    <span id="loadingSpinner" class="loading loading-spinner text-primary hidden"></span>
+                </div>
+            </form>
+        </div>
+
+        <div></div>
+
+        <!-- Select Main Investment -->
+        <div>
+            <label>Select main investment</label>
+            <span class="tooltip-icon" title="It will show up on the pie chart and label in Overview">&#9432;</span>
+            <form method="POST">
+                {% csrf_token %}
+                <select class="select select-primary max-w-xs" name="main_investment">
+                    {% for investment in investments %}
+                    <option value="{{ investment.id }}">{{ investment.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary mt-2">
+                    <i class="fas fa-check"></i>
+                </button>
+            </form>
+        </div>
+    
+        <!-- Select Currency Symbol -->
+        <div>
+            <label>Select currency symbol</label>
+            <form method="POST">
+                {% csrf_token %}
+                <select class="select select-primary max-w-xs" name="currency_symbol">
+                    <option value="£">£</option>
+                    <option value="€">€</option>
+                    <option value="$">$</option>
+                </select>
+                <button type="submit" class="btn btn-primary mt-2">
+                    <i class="fas fa-check"></i>
+                </button>
+            </form>
+        </div>
+    
+        <!-- Delete User -->
+        <div>
+            <label>Delete user</label>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error" name="delete_user" value="true" onclick="return confirm('Are you sure you want to delete your account?')">
+                    Delete
+                </button>
+            </form>
+        </div>
+
+        <!-- Delete User Data -->
+        <div>
+            <label>Delete user data</label>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error" name="delete_data" value="true" onclick="return confirm('Are you sure you want to delete all your data?')">
+                    Delete
+                </button>
+            </form>
+        </div>
+
     </div>  
-  
-  </div>
+</div>
+<br>
+<form method="POST">
+    {% csrf_token %}
+    <div class="flex flex-col">
+
+        <h3>Customise CSV fields</h3>
+        <p>Click here for instructions</p>
+    
+        <div class="w-1/2 grid grid-cols-2 gap-4">
+            <!-- Transaction Type -->
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                    <span class="label-text">Transaction Type</span>
+                </div>
+                <input type="text" name="transaction_type" placeholder="Enter Transaction Type" class="input input-bordered w-full max-w-xs" required />
+            </label>
+
+            <!-- Date -->
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                    <span class="label-text">Date</span>
+                </div>
+                <input type="text" name="date" placeholder="YYYY-MM-DD" class="input input-bordered w-full max-w-xs" required />
+            </label>
+
+            <!-- Time -->
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                    <span class="label-text">Time</span>
+                </div>
+                <input type="text" name="time" placeholder="HH:MM" class="input input-bordered w-full max-w-xs" required />
+            </label>
+
+            <!-- Transaction Description -->
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                    <span class="label-text">Transaction Description</span>
+                </div>
+                <input type="text" name="transaction_description" placeholder="Enter Description" class="input input-bordered w-full max-w-xs" required />
+            </label>
+
+            <!-- Amount -->
+            <label class="form-control w-full max-w-xs">
+                <div class="label">
+                    <span class="label-text">Amount</span>
+                </div>
+                <input type="text" name="amount" placeholder="Enter Amount" class="input input-bordered w-full max-w-xs" required />
+            </label>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+        </div>
+    </div>
+</form>
+
 
 {% block script %}
 <script src="{% static 'js/spinner.js' %}"></script>
