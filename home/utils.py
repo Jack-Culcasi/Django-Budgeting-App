@@ -17,10 +17,9 @@ def delete_user_data(request):
         Broker.objects.filter(user=user).delete()
         FixedCosts.objects.filter(user=user).delete()
         Transaction.objects.filter(user=user).delete()
-        Category.objects.filter(user=user).delete()
+        Category.objects.filter(user=user).exclude(name="Grocery").delete()
         MonthlyExpenses.objects.filter(payday__user=user).delete()
         Payday.objects.filter(user=user).delete()
-        #UserPreferences.objects.filter(user=user).delete()
 
         return True
     except Exception as e:
@@ -417,7 +416,10 @@ def update_monthly_expenses(request, monthly_expenses, payday):
             monthly_expenses.groceries = Category.objects.get(user=request.user, monthly_expenses=monthly_expenses, name='Groceries').amount
         else:
             monthly_expenses.groceries = 0
-            
+
+        if monthly_expenses.amount == None:
+            monthly_expenses.amount = 0
+
         # Get all the categories related to ME except for groceries
         misc_categories = Category.objects.filter(
             user=request.user, 
@@ -436,7 +438,6 @@ def update_monthly_expenses(request, monthly_expenses, payday):
 
         # Update misc
         monthly_expenses.misc = misc_amount + transactions_without_category
-
         # Update total amount
         monthly_expenses.amount += (
             monthly_expenses.utilities 
