@@ -26,6 +26,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('signup/', views.signup, name='signup'),
     path('', views.home, name='home'),
+    path('guide/', views.guide, name='guide'),
     path('home/', views.home, name='home'),
     path('payday/', views.payday, name='payday'),
     path('expenses/<int:payday_id>/<int:monthly_expense_id>/', views.expenses, name='expenses'),
