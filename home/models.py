@@ -2,6 +2,24 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 
+class CsvPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='csv_preferences')
+    transaction_type = models.CharField(max_length=50, blank=True, null=True)
+    date = models.CharField(max_length=50, blank=True, null=True)
+    time = models.CharField(max_length=50, blank=True, null=True)
+    transaction_description = models.CharField(max_length=50, blank=True, null=True)
+    amount = models.CharField(max_length=50, blank=True, null=True)
+
+    def __str__(self):
+         return (
+            f"Preferences for {self.user.username}: "
+            f"Transaction Type: {self.transaction_type or 'None'}, "
+            f"Date: {self.date or 'None'}, "
+            f"Time: {self.time or 'None'}, "
+            f"Description: {self.transaction_description or 'None'}, "
+            f"Amount: {self.amount or 'None'}"
+        )
+
 class UserPreferences(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  
     currency_symbol = models.CharField(max_length=5, default='£')  
