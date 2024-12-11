@@ -1,6 +1,6 @@
-- Custom CSV uploader (user fills given fields such as "amount", "date", "note" etc...)
 - Add guide
+- Add statistic page
 
 - Dove ho lasciato: 
-        - aggiunto custom csv fields in settings, fare dovuti collegamenti
+        - 127 guide, stavo scrivendo la guida, spiegando l upload di file CSV
 
