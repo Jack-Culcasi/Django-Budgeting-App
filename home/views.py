@@ -14,6 +14,10 @@ from .forms import CustomUserCreationForm
 from django.shortcuts import get_object_or_404
 from itertools import chain
 
+def guide(request):
+    context = {}
+    return render(request, 'guide.html', context)
+
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -105,7 +109,40 @@ def settings(request):
             main_investment_id = request.POST.get('main_investment')
             main_investment = check_user_investment(request, main_investment_id)
             user_pref.main_investment = main_investment
-            user_pref.save()           
+            user_pref.save()       
+
+        if 'transaction_type' in request.POST:    
+            transaction_type = request.POST.get('transaction_type')
+            date = request.POST.get('date')
+            time = request.POST.get('time')
+            transaction_description = request.POST.get('transaction_description')
+            amount = request.POST.get('amount')
+            try:
+                if CsvPreferences.objects.filter(user=request.user).exists():
+                    # Amend existing preferences
+                    csv_preferences = CsvPreferences.objects.get(user=request.user)
+                    csv_preferences.transaction_type = transaction_type
+                    csv_preferences.date = date
+                    csv_preferences.time = time
+                    csv_preferences.transaction_description = transaction_description
+                    csv_preferences.amount = amount
+                    csv_preferences.save()
+                else:    
+                    # Create CsvPreferences object
+                    csv_preferences = CsvPreferences.objects.create(
+                        user=request.user,
+                        transaction_type=transaction_type,
+                        date=date,
+                        time=time,
+                        transaction_description=transaction_description,
+                        amount=amount
+                    )
+
+                messages.success(request, "Your preferences have been uploaded successfully.")
+
+            except Exception as e:
+                messages.error(request, f"An error occurred while creating csv preferences: {e}")
+                print(f"An error occurred while creating csv_preferences: {e}")
             
     else:
         form = UploadFileForm()
