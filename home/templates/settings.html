@@ -160,7 +160,7 @@
     </div>  
 </div>
 <br>
-<form method="POST">
+<form method="POST" action="{% url 'settings' %}">
     {% csrf_token %}
     <div class="flex flex-col">
 
@@ -173,7 +173,7 @@
                 <div class="label">
                     <span class="label-text">Transaction Type</span>
                 </div>
-                <input type="text" name="transaction_type" placeholder="Enter Transaction Type" class="input input-bordered w-full max-w-xs" required />
+                <input type="text" name="transaction_type" placeholder="Enter Transaction Type" class="input input-bordered w-full max-w-xs" />
             </label>
 
             <!-- Date -->
@@ -181,7 +181,7 @@
                 <div class="label">
                     <span class="label-text">Date</span>
                 </div>
-                <input type="text" name="date" placeholder="YYYY-MM-DD" class="input input-bordered w-full max-w-xs" required />
+                <input type="text" name="date" placeholder="YYYY-MM-DD" class="input input-bordered w-full max-w-xs" />
             </label>
 
             <!-- Time -->
@@ -189,7 +189,7 @@
                 <div class="label">
                     <span class="label-text">Time</span>
                 </div>
-                <input type="text" name="time" placeholder="HH:MM" class="input input-bordered w-full max-w-xs" required />
+                <input type="text" name="time" placeholder="HH:MM" class="input input-bordered w-full max-w-xs" />
             </label>
 
             <!-- Transaction Description -->
@@ -197,7 +197,7 @@
                 <div class="label">
                     <span class="label-text">Transaction Description</span>
                 </div>
-                <input type="text" name="transaction_description" placeholder="Enter Description" class="input input-bordered w-full max-w-xs" required />
+                <input type="text" name="transaction_description" placeholder="Enter Description" class="input input-bordered w-full max-w-xs" />
             </label>
 
             <!-- Amount -->
@@ -205,7 +205,7 @@
                 <div class="label">
                     <span class="label-text">Amount</span>
                 </div>
-                <input type="text" name="amount" placeholder="Enter Amount" class="input input-bordered w-full max-w-xs" required />
+                <input type="text" name="amount" placeholder="Enter Amount" class="input input-bordered w-full max-w-xs" />
             </label>
 
             <div class="flex items-center gap-2 mt-4">
