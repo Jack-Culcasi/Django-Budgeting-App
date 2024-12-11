@@ -17,9 +17,12 @@ def delete_user_data(request):
         Broker.objects.filter(user=user).delete()
         FixedCosts.objects.filter(user=user).delete()
         Transaction.objects.filter(user=user).delete()
-        Category.objects.filter(user=user).exclude(name="Grocery").delete()
+        Category.objects.filter(user=user).delete()
         MonthlyExpenses.objects.filter(payday__user=user).delete()
         Payday.objects.filter(user=user).delete()
+
+        # Create a new Groceries category
+        Category.objects.create(user=request.user, name='Groceries')
 
         return True
     except Exception as e:
@@ -31,15 +34,23 @@ def handle_csv_file(request, csv_file, monthly_expenses):
     try:
         # Fetch all rules for the current user
         rules = Rule.objects.filter(user=request.user)
+        # Get the user's custom preferences if they exist
+        preferences = getattr(request.user, 'csv_preferences', None)
 
         for row in csv_reader:
-            transaction_type = row['Transaction Type']
+            if row.get('Transaction Type'):
+                transaction_type = row['Transaction Type']
+                
+            else:
+                # Use preferences if available, otherwise set to 'Purchase' so that it triggers next if condition
+                transaction_type = row[preferences.transaction_type] if preferences and preferences.transaction_type else 'Purchase'
+
             if transaction_type == 'Purchase':
-                # Extract transaction details
-                date = row['Date']
-                time = row['Time']
-                description = row['Transaction Description']
-                amount = Decimal(row['Amount'])
+                date = row[preferences.date] if preferences and preferences.date else row.get('Date')
+                time = row[preferences.time] if preferences and preferences.time else row.get('Time')
+                description = row[preferences.transaction_description] if preferences and preferences.transaction_description else row.get('Transaction Description')
+                amount = Decimal(row[preferences.amount] if preferences and preferences.amount else row.get('Amount'))
+                
                 combined_note = f"{date} - {time}\n{description}".strip()
 
                 # Initialize category or fixed cost as None
