@@ -48,8 +48,16 @@ def handle_csv_file(request, csv_file, monthly_expenses):
             if transaction_type == 'Purchase':
                 date = row[preferences.date] if preferences and preferences.date else row.get('Date')
                 time = row[preferences.time] if preferences and preferences.time else row.get('Time')
+                
+                if time == None:
+                    time = ''
+
                 description = row[preferences.transaction_description] if preferences and preferences.transaction_description else row.get('Transaction Description')
                 amount = Decimal(row[preferences.amount] if preferences and preferences.amount else row.get('Amount'))
+
+                # If the amount of the transaction is 0 the whole row is skipped.
+                if amount == 0:
+                    continue
                 
                 combined_note = f"{date} - {time}\n{description}".strip()
 
