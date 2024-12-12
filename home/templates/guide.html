@@ -19,9 +19,9 @@
             User Settings
         </div>
         <div class="collapse-content">
-            <p>In the User Settings page, you can update your personal preferences such a preferred currency symbol.
-                Here you can delete your account or just the data related to it. You can even add "Rules" or customise they way a CSV bank file is uploaded.
-                Moreover, you can upload a xls file with your previous Net Worth data.
+            <p>In the User Settings page, you can update your personal preferences such a preferred a currency symbol.
+                Here, you can delete your account or only the data associated with it. You can even add "Rules" or customise they way a CSV bank file is uploaded.
+                Moreover, you can upload an XLS file containing your previous Net Worth data.
             </p>
 
             <div class="collapse collapse-arrow bg-base-200 mb-4">
@@ -31,12 +31,13 @@
                 </div>
                 <div class="collapse-content">
 
-                    <p>A rule is composed of just a note and Category or Fixed Cost.
-                        Every time you upload a CSV file during the Payday process the system will check for rules. If a transaction has a note that contains 
-                        the rule's note it will be assigned to the Category or Fixed Cost specified in the rule. For example if you have a Rule with note "Lidl" 
-                        and Category "Groceries", if a transaction in your CSV bank file has "Lidl" in the description, it will then be automatically assigned to 
-                        the "Groceries" Category. You can see the Categories being pre selected in the page shown after you upload the CSV file.
-                        If it is a Fixed Cost it will appear at the top of the page. So, a transaction in your CSV file that looks like this:
+                    <p>A rule consists of a note and either a Category or a Fixed Cost.
+                        Whenever you upload a CSV file during the Payday process, the system checks for rules. 
+                        If a transaction description contains the text of a rule's note, it will be assigned to the Category or Fixed Cost defined in the rule. 
+                        For example, if you create a rule with the note 'Lidl' and the Category 'Groceries', 
+                        any transaction in your CSV bank file with 'Lidl' in the description will automatically be assigned to the 'Groceries' Category. 
+                        You can see the Categories pre-selected on the page displayed after you upload the CSV file.
+                        If it is a Fixed Cost, it will appear at the top of the page. So, a transaction in your CSV file that looks like this:
                     </p>
 
                     <div class="overflow-x-auto">
@@ -64,8 +65,7 @@
                       </div>
 
                       <p>
-                        will get the amount from the Amount column, 
-                        and the note will contain the Date, Time and Transaction Description:
+                        will extract the amount from the 'Amount' column, and the note will include the Date, Time, and Transaction Description:
                       </p>
 
                       <div class="overflow-x-auto">
@@ -73,16 +73,16 @@
                           <!-- head -->
                           <thead>
                             <tr>
-                              <th>Amount</th>
-                              <th>Category</th>
-                              <th>Note</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>10</td>
-                              <td>Groceries</td>
-                              <td>25 Oct 2024 - 17:36 Lidl</td>
+                                <th>Amount</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td>10</td>
+                                <td>25 Oct 2024 - 17:36 Lidl</td>
+                                <td>Groceries</td>
                             </tr>
                           </tbody>
                         </table>
@@ -97,9 +97,8 @@
                     Custom CSV fields
                 </div>
                 <div class="collapse-content">
-                    <p>The very first row of your CSV file must contain the column descriptions (Date, Time, etc...).
-                        Ideally your CSV file is structured as the table below:
-                    </p>
+                    <p>The first row of your CSV file must contain the column headers (e.g., Date, Time, etc.). 
+                        Ideally, your CSV file should be structured as shown in the table below:</p>
                     <div class="overflow-x-auto">
                         <table class="table">
                           <!-- head -->
@@ -123,21 +122,141 @@
                           </tbody>
                         </table>
                       </div>
-                      <p>
-                       It does not matter if you have ohter columns, the system will search for columns named Date, Time etc...   
-                      </p>
-                      
+                      <p>It does not matter if your file includes additional columns; the system will look for columns named Date, Time, and so on. 
+                        Now, let's examine a different type of CSV bank file:</p>
+                      <div class="overflow-x-auto">
+                        <table class="table">
+                          <!-- head -->
+                          <thead>
+                            <tr>
+                              <th>Date</th>
+                              <th>Description</th>
+                              <th>Deposits</th>
+                              <th>Withdrawls</th>
+                              <th>Balance</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>20-Aug-2020</td>
+                              <td>NEFT</td>
+                              <td>23237</td>
+                              <td>0</td>
+                              <td>37243.31</td>
+                            </tr>
+                          </tbody>
+                          <tbody>
+                            <tr>
+                              <td>21-Aug-2020</td>
+                              <td>NEFT</td>
+                              <td>0</td>
+                              <td>3724.33</td>
+                              <td>33518.98</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <p>In this case, we need to customise the CSV fields from the Settings page. We can leave the Transaction Type, Date, and Time fields blank. 
+                        If the Transaction Type field is left blank, it will default to "Purchase." 
+                        The Date field is already correctly named, and since the Time field is not present in the CSV file, it will be skipped. 
+                        However, we do need to update the Transaction Description field to "Description" and the Amount field to "Withdrawls" as it represents the transaction amount. 
+                        Here's how we should fill the Customise CSV fields form in the Settings page:</p>
+                      <div class="overflow-x-auto">
+                        <table class="table">
+                          <!-- head -->
+                          <thead>
+                            <tr>
+                              <th>Transaction Type</th>
+                              <th>Date</th>
+                              <th>Time</th>
+                              <th>Transaction Description</th>
+                              <th>Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td></td>
+                              <td></td>
+                              <td></td>
+                              <td>Description</td>
+                              <td>Withdrawls</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <p>When we upload the CSV file shown above, the following transaction will be generated:</p>
+                      <div class="overflow-x-auto">
+                        <table class="table">
+                          <!-- head -->
+                          <thead>
+                            <tr>
+                              <th>Amount</th>
+                              <th>Description</th>
+                              <th>Category</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>3724.33</td>
+                              <td>21-Aug-2020 - NEFT</td>
+                              <td></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <p>We can also populate the Time field in the Settings page with "Balance," 
+                        so that the transaction's note will display as "21-Aug-2020 - 33518.98 NEFT."</p>
                 </div>
             </div>
             
             <div class="collapse collapse-arrow bg-base-200 mb-4">
                 <input type="checkbox" />
                 <div class="collapse-title text-xl font-medium">
-                    Upload xls file
+                    Upload XLS file
                 </div>
                 <div class="collapse-content">
-                    <p>
-                    </p>
+                    <p>If you have been budgeting previously, you can create an XLS file (Excel, Sheets, etc.) with your data and upload it here. 
+                        The first row of your file must contain the column headers. The first two rows of your file should look as follows:</p>
+                    <div class="overflow-x-auto">
+                        <table class="table">
+                          <!-- head -->
+                          <thead>
+                            <tr>
+                              <th>From</th>
+                              <th>To</th>
+                              <th>Amount</th>
+                              <th>NetWorth Amount</th>
+                              <th>Savings Amount</th>
+                              <th>Utilities</th>
+                              <th>Groceries</th>
+                              <th>Misc</th>
+                              <th>Investments Amount</th>
+                              <th>Pension amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>06/01/2021</td>
+                              <td>05/02/2021</td>
+                              <td>£1,680.00</td>
+                              <td>£6,040.12</td>
+                              <td>£1,500.00</td>
+                              <td>£559.70</td>
+                              <td>£150.00</td>
+                              <td>£0.00</td>
+                              <td>£6,040.12</td>
+                              <td>£0.00</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <p>Each row represents a month. If the NetWorth Amount, Utilities, Groceries, or Misc columns contain a comment, 
+                        it will be saved and stored as a note for that month. In this example, the expenses are divided into Utilities, Groceries, and Misc: </p>
+                        <p>- Utilities represents the total of fixed costs (e.g., rent, subscriptions, etc.).</p>
+                        <p>- Groceries are... well, groceries.</p>
+                        <p>- Misc includes all other expenses you may incur in a given month.</p>
+                        <p>Click *here* to learn how your expenses and net worth data are organised and stored.
+                     </p>
                 </div>
             </div>
 
