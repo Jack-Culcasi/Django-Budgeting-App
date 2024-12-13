@@ -1,6 +1,4 @@
-- Add guide
 - Add statistic page
 
 - Dove ho lasciato: 
-        - 127 guide, stavo scrivendo la guida, spiegando l upload di file CSV
 
