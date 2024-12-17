@@ -18,6 +18,28 @@ def guide(request):
     context = {}
     return render(request, 'guide.html', context)
 
+def statistics(request):
+    paydays = Payday.objects.filter(user=request.user)
+    years = sorted(set(payday.payday_date.year for payday in paydays))
+
+    if request.method == 'POST': # Search button pressed
+            from_month = request.POST.get('from_month')  
+            from_year = request.POST.get('from_year')
+            to_month = request.POST.get('to_month')  
+            to_year = request.POST.get('to_year')
+
+            # Fetch net worths from dates
+            net_worth_objects = from_to_net_worths(request, from_month, from_year, to_month, to_year)
+
+            for net_worth in net_worth_objects:
+                print(net_worth.date)
+
+    context = {
+        'years': years,
+    }
+
+    return render(request, 'statistics.html', context)
+
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
@@ -203,7 +225,7 @@ def home(request):
         # Monthly expenses notes
         monthly_expenses_notes = [monthly_expense.note for monthly_expense in monthly_expenses]
         # Years for search field
-        years = [payday.payday_date.year for payday in paydays]
+        years = sorted(set(payday.payday_date.year for payday in paydays))
 
         graph_data = {
             'dates': dates,
