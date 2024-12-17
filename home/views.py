@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from .models import *
 from .utils import *
 from decimal import Decimal
+from django.db.models import Sum, Max, Min
 from .forms import UploadFileForm, CSVUploadForm
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -21,24 +22,100 @@ def guide(request):
 def statistics(request):
     paydays = Payday.objects.filter(user=request.user)
     years = sorted(set(payday.payday_date.year for payday in paydays))
+    net_worth_objects = []
+    summary_text = ""
 
-    if request.method == 'POST': # Search button pressed
-            from_month = request.POST.get('from_month')  
-            from_year = request.POST.get('from_year')
-            to_month = request.POST.get('to_month')  
-            to_year = request.POST.get('to_year')
+    if request.method == 'POST':  # Search button pressed
+        from_month = request.POST.get('from_month')  
+        from_year = request.POST.get('from_year')
+        to_month = request.POST.get('to_month')  
+        to_year = request.POST.get('to_year')
 
-            # Fetch net worths from dates
-            net_worth_objects = from_to_net_worths(request, from_month, from_year, to_month, to_year)
+        # Fetch net worths from dates
+        net_worth_objects = from_to_net_worths(request, from_month, from_year, to_month, to_year)
 
-            for net_worth in net_worth_objects:
-                print(net_worth.date)
+        # Extract start and end dates
+        start_date = f"{from_year}-{from_month}-01"
+        end_date = f"{to_year}-{to_month}-01"
+
+        # Aggregate monthly expenses data
+        monthly_expenses = MonthlyExpenses.objects.filter(
+            payday__user=request.user,
+            start_date__gte=start_date,
+            end_date__lte=end_date,
+        )
+        total_expenses = sum(exp.amount for exp in monthly_expenses if exp.amount)
+        num_months = monthly_expenses.count()
+        month_avg = (total_expenses / num_months) if num_months else Decimal(0)
+
+        # Aggregate income data
+        total_income = Payday.objects.filter(
+            user=request.user,
+            payday_date__gte=start_date,
+            payday_date__lte=end_date,
+        ).aggregate(total_income=Sum('amount'))['total_income'] or Decimal(0)
+
+        # Savings rate
+        savings_rate = ((total_income - total_expenses) / total_income * 100) if total_income else Decimal(0)
+
+        # Highest and lowest spending months
+        highest_spending_month = monthly_expenses.aggregate(Max('amount'))['amount__max']
+        lowest_spending_month = monthly_expenses.aggregate(Min('amount'))['amount__min']
+
+        # Category-wise breakdown
+        categories = Category.objects.filter(
+            user=request.user,
+            monthly_expenses__in=monthly_expenses
+        ).values('name').annotate(total_amount=Sum('amount'))
+
+        category_stats = ", ".join(
+            f"{cat['name']}: {request.user.userpreferences.currency_symbol} {cat['total_amount']}" 
+            for cat in categories
+        )
+
+        # Fun facts
+        biggest_spending_category = categories.order_by('-total_amount').first()
+        fun_fact = ""
+        if biggest_spending_category:
+            fun_fact = (
+                f"Your biggest spending category was '{biggest_spending_category['name']}' "
+                f"with a total of {request.user.userpreferences.currency_symbol} {biggest_spending_category['total_amount']}! "
+            )
+
+        # Net worth trends
+        if net_worth_objects.exists():
+            net_worth_start = net_worth_objects.first().net_worth
+            net_worth_end = net_worth_objects.last().net_worth
+            net_worth_change = net_worth_end - net_worth_start
+            net_worth_trend = (
+                f"Your net worth {'increased' if net_worth_change > 0 else 'decreased'} by "
+                f"{request.user.userpreferences.currency_symbol} {abs(net_worth_change)} "
+                f"during this period."
+            )
+        else:
+            net_worth_trend = "Net worth data is unavailable for this period."
+
+        # Generate summary text
+        summary_text = {
+            "total_income": f"{total_income} {request.user.userpreferences.currency_symbol}",
+            "total_expenses": f"{total_expenses} {request.user.userpreferences.currency_symbol}",
+            "month_avg": f"{month_avg:.2f} {request.user.userpreferences.currency_symbol}",
+            "savings_rate": f"{savings_rate:.2f}%",
+            "highest_spending_month": f"{highest_spending_month} {request.user.userpreferences.currency_symbol}" if highest_spending_month else "N/A",
+            "lowest_spending_month": f"{lowest_spending_month} {request.user.userpreferences.currency_symbol}" if lowest_spending_month else "N/A",
+            "category_breakdown": category_stats,
+            "fun_fact": fun_fact,
+            "net_worth_trend": net_worth_trend,
+        }
 
     context = {
         'years': years,
+        'net_worth_objects': net_worth_objects,
+        'summary_text': summary_text,
     }
 
     return render(request, 'statistics.html', context)
+
 
 def signup(request):
     if request.method == 'POST':
@@ -525,7 +602,7 @@ def paydays(request):
     paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:12] # Only show last 12 months paydays
     monthly_expenses = MonthlyExpenses.objects.filter(payday__user=request.user)
     # Years for search field
-    years = [payday.payday_date.year for payday in Payday.objects.filter(user=request.user)]
+    years = sorted(set(payday.payday_date.year for payday in Payday.objects.filter(user=request.user)))
 
     if request.method == 'POST':
 
