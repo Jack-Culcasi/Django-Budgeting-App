@@ -1,4 +1,6 @@
-- Add statistic page
+- category added when uploading xls file ?
+- deductions not showing fixed costs amount (useful when splitting with partner)
+- Fix summary_text
 
 - Dove ho lasciato: 
-
+    -   Fixing summary text
