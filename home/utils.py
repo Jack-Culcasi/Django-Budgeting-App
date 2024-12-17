@@ -544,3 +544,19 @@ def check_user_investment(request, investment_id): # Check if an investment is r
             if Investment.objects.filter(broker=broker, id=investment_id).exists():
                 return Investment.objects.get(broker=broker, id=investment_id)
         return None
+
+def from_to_net_worths(request, from_month, from_year, to_month, to_year):
+    # Construct start and end datetime objects
+    start_date = datetime(year=int(from_year), month=int(from_month), day=1)
+    end_date = datetime(year=int(to_year), month=int(to_month), day=1)
+
+    # Adjust end_date to include the entire "To" month
+    if end_date.month == 12:  # If it's December, move to January next year
+        end_date = datetime(year=end_date.year + 1, month=1, day=1)
+    else:  # Move to the first day of the next month
+        end_date = datetime(year=end_date.year, month=end_date.month + 1, day=1)
+
+    # Fetch all NetWorth objects within the time frame
+    net_worth_objects = NetWorth.objects.filter(date__gte=start_date, date__lt=end_date)
+
+    return net_worth_objects
