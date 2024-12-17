@@ -1,0 +1,95 @@
+{% extends "index.html" %}
+{% block start %}
+{% load static %}
+{% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post" action="{% url 'statistics' %}">
+    {% csrf_token %}
+    <div class="flex flex-col items-center justify-center">
+        <!-- Main Label -->
+        <div class="flex flex-col items-center w-full max-w-xs">
+            <label class="form-control w-full">
+                <div class="label">
+                    <span class="label-text font-bold text-lg">Select Time Frame</span>
+                </div>
+            </label>
+        </div>
+
+        <!-- From Section -->
+        <div class="flex flex-col w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">From</span>
+            </label>
+            <div class="flex space-x-4">
+                <select class="select select-primary w-full" name="from_month">
+                    <option disabled selected>Select Month</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select class="select select-primary w-full" name="from_year">
+                    <option disabled selected>Select Year</option>
+                    {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- To Section -->
+        <div class="flex flex-col mb-4 w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">To</span>
+            </label>
+            <div class="flex space-x-4">
+                <select class="select select-primary w-full" name="to_month">
+                    <option disabled selected>Select Month</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+                <select class="select select-primary w-full" name="to_year">
+                    <option disabled selected>Select Year</option>
+                    {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex justify-center w-full max-w-xs">
+            <button type="submit" class="btn btn-primary w-full">
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
