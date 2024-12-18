@@ -34,15 +34,9 @@ def statistics(request):
         # Fetch net worths from dates
         net_worth_objects = from_to_net_worths(request, from_month, from_year, to_month, to_year)
 
-        # Extract start and end dates
-        start_date = f"{from_year}-{from_month}-01"
-        end_date = f"{to_year}-{to_month}-01"
-
-        # Aggregate monthly expenses data
+        # Extract associated monthly expenses
         monthly_expenses = MonthlyExpenses.objects.filter(
-            payday__user=request.user,
-            start_date__gte=start_date,
-            end_date__lte=end_date,
+            payday__in=net_worth_objects.values_list('payday', flat=True)
         )
         total_expenses = sum(exp.amount for exp in monthly_expenses if exp.amount)
         num_months = monthly_expenses.count()
@@ -50,23 +44,32 @@ def statistics(request):
 
         # Aggregate income data
         total_income = Payday.objects.filter(
-            user=request.user,
-            payday_date__gte=start_date,
-            payday_date__lte=end_date,
+            id__in=net_worth_objects.values_list('payday', flat=True)
         ).aggregate(total_income=Sum('amount'))['total_income'] or Decimal(0)
 
         # Savings rate
         savings_rate = ((total_income - total_expenses) / total_income * 100) if total_income else Decimal(0)
 
-        # Highest and lowest spending months
-        highest_spending_month = monthly_expenses.aggregate(Max('amount'))['amount__max']
-        lowest_spending_month = monthly_expenses.aggregate(Min('amount'))['amount__min']
+        # Find highest and lowest spending months with their IDs
+        highest_spending_month_obj = monthly_expenses.order_by('-amount').first()
+        lowest_spending_month_obj = monthly_expenses.order_by('amount').first()
+
+        highest_spending_month = {
+            "amount": highest_spending_month_obj.amount if highest_spending_month_obj else "N/A",
+            "id": highest_spending_month_obj.payday.id if highest_spending_month_obj else None,
+        }
+
+        lowest_spending_month = {
+            "amount": lowest_spending_month_obj.amount if lowest_spending_month_obj else "N/A",
+            "id": lowest_spending_month_obj.payday.id if lowest_spending_month_obj else None,
+        }
 
         # Category-wise breakdown
         categories = Category.objects.filter(
-            user=request.user,
             monthly_expenses__in=monthly_expenses
         ).values('name').annotate(total_amount=Sum('amount'))
+
+        print(categories)
 
         category_stats = ", ".join(
             f"{cat['name']}: {request.user.userpreferences.currency_symbol} {cat['total_amount']}" 
@@ -79,7 +82,7 @@ def statistics(request):
         if biggest_spending_category:
             fun_fact = (
                 f"Your biggest spending category was '{biggest_spending_category['name']}' "
-                f"with a total of {request.user.userpreferences.currency_symbol} {biggest_spending_category['total_amount']}! "
+                f"with a total of {request.user.userpreferences.currency_symbol} {biggest_spending_category['total_amount']}!"
             )
 
         # Net worth trends
@@ -89,20 +92,19 @@ def statistics(request):
             net_worth_change = net_worth_end - net_worth_start
             net_worth_trend = (
                 f"Your net worth {'increased' if net_worth_change > 0 else 'decreased'} by "
-                f"{request.user.userpreferences.currency_symbol} {abs(net_worth_change)} "
-                f"during this period."
+                f"{request.user.userpreferences.currency_symbol} {abs(net_worth_change)} during this period."
             )
         else:
             net_worth_trend = "Net worth data is unavailable for this period."
 
         # Generate summary text
         summary_text = {
-            "total_income": f"{total_income} {request.user.userpreferences.currency_symbol}",
-            "total_expenses": f"{total_expenses} {request.user.userpreferences.currency_symbol}",
-            "month_avg": f"{month_avg:.2f} {request.user.userpreferences.currency_symbol}",
+            "total_income": f"{total_income}",
+            "total_expenses": f"{total_expenses}",
+            "month_avg": f"{month_avg:.2f}",
             "savings_rate": f"{savings_rate:.2f}%",
-            "highest_spending_month": f"{highest_spending_month} {request.user.userpreferences.currency_symbol}" if highest_spending_month else "N/A",
-            "lowest_spending_month": f"{lowest_spending_month} {request.user.userpreferences.currency_symbol}" if lowest_spending_month else "N/A",
+            "highest_spending_month": highest_spending_month,
+            "lowest_spending_month": lowest_spending_month,
             "category_breakdown": category_stats,
             "fun_fact": fun_fact,
             "net_worth_trend": net_worth_trend,
@@ -112,6 +114,11 @@ def statistics(request):
         'years': years,
         'net_worth_objects': net_worth_objects,
         'summary_text': summary_text,
+        'currency': request.user.userpreferences.currency_symbol,
+        'from_month': from_month,
+        'from_year': from_year,
+        'to_month': to_month,
+        'to_year': to_year,
     }
 
     return render(request, 'statistics.html', context)
