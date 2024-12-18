@@ -95,14 +95,30 @@
 
 {% if summary_text %}
     <div class="summary-container">
-        <h3>Statistics Summary</h3>
+        <h3>From {{ from_month }}/{{ from_year }} to {{ to_month }}/{{ to_year }} </h3>
         <table class="summary-table">
-            <tr><td><strong>Total income:</strong></td><td>{{ summary_text.total_income|intcomma }}</td></tr>
-            <tr><td><strong>Total expenses:</strong></td><td>{{ summary_text.total_expenses|intcomma }}</td></tr>
-            <tr><td><strong>Avg monthly spending:</strong></td><td>{{ summary_text.month_avg|intcomma }}</td></tr>
+            <tr><td><strong>Total income:</strong></td><td>{{ currency }} {{ summary_text.total_income|intcomma }}</td></tr>
+            <tr><td><strong>Total expenses:</strong></td><td>{{ currency }} {{ summary_text.total_expenses|intcomma }}</td></tr>
+            <tr><td><strong>Avg monthly spending:</strong></td><td>{{ currency }} {{ summary_text.month_avg|intcomma }}</td></tr>
             <tr><td><strong>Savings rate:</strong></td><td>{{ summary_text.savings_rate|intcomma }}</td></tr>
-            <tr><td><strong>Highest spending month:</strong></td><td>{{ summary_text.highest_spending_month|intcomma }}</td></tr>
-            <tr><td><strong>Lowest spending month:</strong></td><td>{{ summary_text.lowest_spending_month|intcomma }}</td></tr>
+            <tr><td><strong>Highest spending month:</strong></td><td>
+                {% if summary_text.highest_spending_month.id %}
+                <a href="{% url 'monthly_expenses' summary_text.highest_spending_month.id %}">
+                    {{ currency }} {{ summary_text.highest_spending_month.amount|intcomma }}
+                </a>
+                {% else %}
+                    {{ currency }} {{ summary_text.highest_spending_month.amount|intcomma }}
+                {% endif %}
+            </td></tr>
+            <tr><td><strong>Lowest spending month:</strong></td><td>
+                {% if summary_text.lowest_spending_month.id %}
+                <a href="{% url 'monthly_expenses' summary_text.lowest_spending_month.id %}">
+                    {{ currency }} {{ summary_text.lowest_spending_month.amount|intcomma }}
+                </a>
+                {% else %}
+                    {{ currency }} {{ summary_text.lowest_spending_month.amount|intcomma }}
+                {% endif %}
+            </td></tr>
             <tr><td><strong>Category breakdown:</strong></td><td>{{ summary_text.category_breakdown }}</td></tr>
             <tr><td><strong>Fun fact:</strong></td><td>{{ summary_text.fun_fact }}</td></tr>
             <tr><td><strong>Net worth trend:</strong></td><td>{{ summary_text.net_worth_trend }}</td></tr>
