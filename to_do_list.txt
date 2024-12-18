@@ -1,6 +1,6 @@
 - category added when uploading xls file ?
 - deductions not showing fixed costs amount (useful when splitting with partner)
-- Fix summary_text
+- <p> element too dark in dark mode
 
 - Dove ho lasciato: 
-    -   Fixing summary text
+    -   Fixing summary text COMPLETATO, forse aggiungere altre cose
