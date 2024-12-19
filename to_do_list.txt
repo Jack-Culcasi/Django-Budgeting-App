@@ -6,3 +6,4 @@
 
 - Dove ho lasciato: 
     -   Le note adesso ci sono sulle payday, gnacchete
+    - Problema con search by note in paydays e networths
