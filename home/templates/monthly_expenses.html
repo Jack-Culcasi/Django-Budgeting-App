@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% block start %}
+
 {% if messages %}
     <div>
         {% for message in messages %}
@@ -9,7 +10,8 @@
         {% endfor %}
     </div>
 {% endif %}
-<div class="flex justify-center space-x-10">
+
+<div class="flex justify-center">
     <ul class="timeline">
         <!-- Start Date -->
         <li>
@@ -48,6 +50,7 @@
         </li>
     </ul>
 </div>
+
 <div class="flex justify-center space-x-10">
     <div class="stats shadow">
       <div class="stat">
@@ -97,6 +100,27 @@
         </div>
       </div>      
 </div>
+
+<br>
+
+{% if notes %}
+
+<div class="collapse collapse-arrow bg-base-200 mb-4">
+    <input type="checkbox">
+    <div class="collapse-title text-xl font-medium">
+        Notes
+    </div>
+
+    <div class="collapse-content">
+        <p>{{notes.Payday}}</p>
+        <p>{{notes.MonthlyExpenses}}</p>
+        <p>{{notes.NetWorth}}</p>  
+    </div>
+    
+</div>
+
+{% endif %}
+
 <br>
 <div class="flex items-start justify-start">
     <!-- Left table -->
