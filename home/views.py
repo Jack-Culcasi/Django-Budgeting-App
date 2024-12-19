@@ -23,6 +23,11 @@ def statistics(request):
     paydays = Payday.objects.filter(user=request.user)
     years = sorted(set(payday.payday_date.year for payday in paydays))
     net_worth_objects = []
+    # Initialize variables with default values
+    from_month = None
+    from_year = None
+    to_month = None
+    to_year = None
     summary_text = ""
 
     if request.method == 'POST':  # Search button pressed
@@ -69,7 +74,6 @@ def statistics(request):
             monthly_expenses__in=monthly_expenses
         ).values('name').annotate(total_amount=Sum('amount'))
 
-        print(categories)
 
         category_stats = ", ".join(
             f"{cat['name']}: {request.user.userpreferences.currency_symbol} {cat['total_amount']}" 
@@ -721,6 +725,7 @@ def delete_payday(request):
 @login_required
 def monthly_expenses(request, payday_id):
     payday_object = Payday.objects.get(id=payday_id, user=request.user)
+    net_worth = NetWorth.objects.get(user=request.user, payday=payday_object)
     monthly_expenses = MonthlyExpenses.objects.get(payday=payday_object)
     transactions = Transaction.objects.filter(monthly_expenses=monthly_expenses, user=request.user)
     # Add .transactions_count to category object
@@ -729,12 +734,27 @@ def monthly_expenses(request, payday_id):
     monthly_net = monthly_expenses.payday.amount - monthly_expenses.amount
     monthly_expenses.start_date = monthly_expenses.start_date.date()
     monthly_expenses.end_date = monthly_expenses.end_date.date()
+
+    # Notes collapse-content
+    notes = {}
+
+    if payday_object.note:
+        notes['Payday'] = payday_object.note
+    
+    if net_worth.note:
+        notes['NetWorth'] = net_worth.note
+    
+    if monthly_expenses.note:
+        notes['MonthlyExpenses'] = monthly_expenses.note
+
+
     context = {
         'transactions' : transactions,
         'monthly_expenses': monthly_expenses,
         'categories': categories,
         'fixed_costs': fixed_costs,
-        'monthly_net': monthly_net
+        'monthly_net': monthly_net,
+        'notes': notes
     }
 
     return render(request, 'monthly_expenses.html', context)
