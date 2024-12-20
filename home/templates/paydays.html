@@ -75,21 +75,21 @@
         <button type="submit" class="btn btn-primary mt-4">Search</button>
       </div>
     </div>
-
-    <!-- Text Area for Note -->
+  </form>
+    <form method="post" action="{% url 'paydays' %}">
+      {% csrf_token %}
+      <!-- Text Area for Note -->
     <div id="noteSelection" class="flex flex-col items-start hidden">
       <label class="label">
         <span class="label-text">Enter Note</span>
       </label>
       <textarea class="textarea textarea-primary w-full max-w-xs" placeholder="Enter your note here" name="note"></textarea>
       <button type="submit" class="btn btn-primary mt-4">Search</button>
-    </div>
-
-    <!-- Search Button -->
+      </div>
+    </form>
     
   </div>
 </div>
-</form>
 
 <script>
   function toggleSelection() {
