@@ -5,5 +5,4 @@
 - add graphs to statistics
 
 - Dove ho lasciato: 
-    -   Le note adesso ci sono sulle payday, gnacchete
-    - Problema con search by note in paydays e networths
+    - Problema con search by note in paydays RISOLTO e networths da risolvere
