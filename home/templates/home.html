@@ -91,7 +91,7 @@
 
 </div>
 <br>
-<!-- Charts  -->
+
 <form method="POST" action="{% url 'home' %}">
   {% csrf_token %}
 <div class="flex items-start justify-between">
@@ -135,7 +135,9 @@
               {% endfor %}
             </select>
           </div>
-        
+        </form>
+        <form method="POST" action="{% url 'home' %}">
+          {% csrf_token %}
           <!-- Note Input -->
           <div id="noteSelection" class="hidden">
             <input
