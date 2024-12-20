@@ -366,7 +366,7 @@ def home(request):
         'payday_exists': payday_exists,
         'pac': pac,
         'graph_data': graph_data,
-        'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element
+        'net_worths': net_worths.order_by('-date')[:9], # Only latest 9 result for table element PROBLEM
         'results': results,
         'years': years
         }   
