@@ -473,12 +473,29 @@ def update_monthly_expenses(request, monthly_expenses, payday):
 
 def search_payday(request, search_type, *args):
     if search_type == 'note':
-        # Search by note content
-        note = args[0]  # The first argument is the note
-        paydays = Payday.objects.filter(
-            note__icontains=note  # Search for paydays with a note containing the search text
-        )
-        return paydays
+        note = args[0].strip()  # The note content to search for
+
+        # Use a set to ensure unique Payday objects
+        result_set = set()
+
+        # Search in Payday notes
+        paydays = Payday.objects.filter(note__icontains=note)
+        result_set.update(paydays)
+
+        # Search in NetWorth notes and add related Paydays
+        net_worths = NetWorth.objects.filter(note__icontains=note)
+        for net_worth in net_worths:
+            if net_worth.payday:
+                result_set.add(net_worth.payday)
+
+        # Search in MonthlyExpenses notes and add related Paydays
+        monthly_expenses = MonthlyExpenses.objects.filter(note__icontains=note)
+        for expense in monthly_expenses:
+            if expense.payday:
+                result_set.add(expense.payday)
+
+        # Convert the set to a list and return it
+        return list(result_set)
 
     elif search_type == 'date':
         # Search by month and year
