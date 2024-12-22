@@ -528,12 +528,26 @@ def search_payday(request, search_type, *args):
     
 def search_net_worth(request, search_type, *args):
     if search_type == 'note':
-        # Search by note content
-        note = args[0]  # The first argument is the note
-        net_worths = NetWorth.objects.filter(
-            note__icontains=note  # Search for paydays with a note containing the search text
+        note = args[0].strip()  # The note content to search for
+
+        # Search in NetWorth notes
+        net_worths_qs = NetWorth.objects.filter(note__icontains=note)
+
+        # Search in Payday notes and add related NetWorths
+        paydays_qs = Payday.objects.filter(note__icontains=note)
+        net_worths_from_paydays_qs = NetWorth.objects.filter(payday__in=paydays_qs)
+
+        # Search in MonthlyExpenses notes and add related NetWorths
+        monthly_expenses_qs = MonthlyExpenses.objects.filter(note__icontains=note)
+        net_worths_from_expenses_qs = NetWorth.objects.filter(
+            payday__in=monthly_expenses_qs.values_list('payday', flat=True)
         )
-        return net_worths
+
+        # Combine all QuerySets using union()
+        all_net_worths = net_worths_qs.union(net_worths_from_paydays_qs, net_worths_from_expenses_qs)
+
+        # Return the combined QuerySet
+        return all_net_worths
 
     elif search_type == 'date':
         # Search by month and year
