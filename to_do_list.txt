@@ -5,4 +5,4 @@
 - add graphs to statistics
 
 - Dove ho lasciato: 
-    - Problema con search by note in paydays RISOLTO e networths da risolvere
+    - PROBLEMA con amend_payday. vedere funzione in utils.py 
