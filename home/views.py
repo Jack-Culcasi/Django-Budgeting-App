@@ -19,6 +19,7 @@ def guide(request):
     context = {}
     return render(request, 'guide.html', context)
 
+@login_required
 def statistics(request):
     paydays = Payday.objects.filter(user=request.user)
     years = sorted(set(payday.payday_date.year for payday in paydays))
@@ -209,6 +210,14 @@ def settings(request):
             rule_id = request.POST.get('delete_rule')
             rule = Rule.objects.get(user=request.user, id=rule_id)
             rule.delete()
+
+        if 'delete_csv' in request.POST:
+            try:
+                csv_preferences = CsvPreferences.objects.get(user=request.user)
+                csv_preferences.delete()
+            except CsvPreferences.DoesNotExist:
+                # Handle the case where there are no CsvPreferences for the user
+                messages.error(request, "No CSV preferences found to delete.")
 
         if 'currency_symbol' in request.POST:
             currency_symbol = request.POST.get('currency_symbol')
