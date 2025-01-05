@@ -458,7 +458,7 @@ def update_monthly_expenses(request, monthly_expenses, payday):
         # Update misc
         monthly_expenses.misc = misc_amount + transactions_without_category
         # Update total amount
-        monthly_expenses.amount += (
+        monthly_expenses.amount = (
             monthly_expenses.utilities 
             + monthly_expenses.groceries 
             + monthly_expenses.misc
