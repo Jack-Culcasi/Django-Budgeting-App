@@ -180,7 +180,7 @@
                         <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.amount }}</td>
                         <td>{{ user.userpreferences.currency_symbol }} {{ fixed_cost.difference_with_last_month|floatformat:2 }}</td>
                         <td>
-                            {% if fixed_cost.note %}
+                            {% if fixed_cost.note and fixed_cost.note != 'None' %}
                               <span title="{{ fixed_cost.note }}">Note</span>
                             {% endif %}
                           </td>
