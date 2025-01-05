@@ -103,7 +103,7 @@
             <tr><td><strong>Savings rate:</strong></td><td>{{ summary_text.savings_rate|intcomma }}</td></tr>
             <tr><td><strong>Highest spending month:</strong></td><td>
                 {% if summary_text.highest_spending_month.id %}
-                <a href="{% url 'monthly_expenses' summary_text.highest_spending_month.id %}">
+                <a href="{% url 'monthly_expenses' summary_text.highest_spending_month.id %}" class="blue-link">
                     {{ currency }} {{ summary_text.highest_spending_month.amount|intcomma }}
                 </a>
                 {% else %}
@@ -112,7 +112,7 @@
             </td></tr>
             <tr><td><strong>Lowest spending month:</strong></td><td>
                 {% if summary_text.lowest_spending_month.id %}
-                <a href="{% url 'monthly_expenses' summary_text.lowest_spending_month.id %}">
+                <a href="{% url 'monthly_expenses' summary_text.lowest_spending_month.id %}" class="blue-link">
                     {{ currency }} {{ summary_text.lowest_spending_month.amount|intcomma }}
                 </a>
                 {% else %}
