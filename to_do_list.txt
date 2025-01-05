@@ -1,8 +1,4 @@
 - category added when uploading xls file ?
-- deductions not showing fixed costs amount (useful when splitting with partner)
-- <p> element too dark in dark mode
-- add chance to add note at the end of payday process
-- add graphs to statistics
 
 - Dove ho lasciato: 
-    - PROBLEMA con amend_payday. vedere funzione in utils.py 
+    - Rivedere in genereale per poi passare a deployment
