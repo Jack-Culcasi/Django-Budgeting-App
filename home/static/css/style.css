@@ -20,4 +20,33 @@ body p {
   margin-bottom: 1rem;
   color: #333; 
 }
+
+/* Default link styles for blue-link class */
+.blue-link {
+  color: blue;
+  text-decoration: underline;
+}
+
+.blue-link:hover {
+  color: darkblue;
+  text-decoration: none;
+}
+
+/* Dark theme */
+html[data-theme="dark"] p {
+  color: #e5e7eb;  /* Text color for dark mode */
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: #1f1f1f; /* Dark background for the form */
+}
+
+html[data-theme="dark"] .text-black {
+  color: white; /* Text color for dark mode */
+}
+
+html[data-theme="dark"] .text-blue-500 {
+  color: #60a5fa; /* Adjust link color for dark mode */
+}
+
   
