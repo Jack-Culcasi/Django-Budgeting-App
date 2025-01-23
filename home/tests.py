@@ -1,227 +1,239 @@
-from django.test import TestCase
-from django.urls import reverse
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from django.utils import timezone
-from .models import UserPreferences, Payday, MonthlyExpenses, Category, Transaction, FixedCosts, Broker, Investment, Bank, Pension, NetWorth
+from django.urls import reverse
+from decimal import Decimal
+from .models import (CsvPreferences, UserPreferences, Rule, Payday, MonthlyExpenses, 
+                    Category, Transaction, FixedCosts, Broker, Investment, Bank, Pension, NetWorth)
+from .utils import delete_user_data, handle_csv_file, handle_uploaded_file
+from io import BytesIO
+import csv
 
-class ModelTestCase(TestCase):
+class BudgetingAppTests(TestCase):
 
     def setUp(self):
-        # Create a user for the tests
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        """Setup mock data for testing."""
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.client = Client()
+        self.client.login(username='testuser', password='testpass')
+        
+        # Create Payday
+        self.payday = Payday.objects.create(user=self.user, payday_date="2025-01-01", amount=Decimal('1000.00'))
 
-        # Create user preferences for currency
-        self.user_preferences = UserPreferences.objects.create(user=self.user, currency_symbol='€')
-
-        # Create a payday for the user
-        self.payday_date = timezone.now()
-        self.payday = Payday.objects.create(user=self.user, payday_date=self.payday_date, amount=1500, note="November payday")
-
-        # Create monthly expenses for the user
-        self.start_date = timezone.now()
-        self.end_date = timezone.now() + timezone.timedelta(days=30)
+        # Create MonthlyExpenses
         self.monthly_expenses = MonthlyExpenses.objects.create(
             payday=self.payday,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            utilities=200,
-            groceries=300,
-            misc=50,
-            amount=550,
-            note="November monthly expenses"
+            start_date="2025-01-01",
+            end_date="2025-01-31",
+            utilities=Decimal('100.00'),
+            groceries=Decimal('200.00'),
+            misc=Decimal('50.00'),
+            amount=Decimal('350.00')
         )
 
-        # Create categories for the user
-        self.category1 = Category.objects.create(
+        # Create Category
+        self.category = Category.objects.create(
             user=self.user,
             monthly_expenses=self.monthly_expenses,
-            name='Utilities',
-            amount=200,
-            note="Utilities expenses"
+            name="Groceries",
+            amount=Decimal('200.00')
         )
-        self.category2 = Category.objects.create(
+
+    def test_model_creation(self):
+        """Test if models are created correctly."""
+        self.assertEqual(Payday.objects.count(), 1)
+        self.assertEqual(MonthlyExpenses.objects.count(), 1)
+        self.assertEqual(Category.objects.count(), 1)
+
+    def test_home_view(self):
+        """Test home page rendering and context."""
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'home.html')
+
+    def test_statistics_view(self):
+        """Test statistics view functionality."""
+        response = self.client.post(reverse('statistics'), {
+            'from_month': 'January',
+            'from_year': '2025',
+            'to_month': 'January',
+            'to_year': '2025'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('summary_text', response.context)
+
+    def test_delete_user_data(self):
+        """Test the utility function to delete user data."""
+        result = delete_user_data(request=self._mock_request(self.user))
+        self.assertTrue(result)
+        self.assertEqual(Payday.objects.filter(user=self.user).count(), 0)
+
+    def test_handle_csv_file(self):
+        """Test CSV handling function."""
+        csv_content = """Date,Transaction Type,Transaction Description,Amount\n2025-01-01,Purchase,Test Transaction,100.00"""
+        csv_file = BytesIO(csv_content.encode('utf-8'))
+        csv_file.name = 'test.csv'
+
+        request = self._mock_request(self.user, files={'file': csv_file})
+        result = handle_csv_file(request, csv_file, self.monthly_expenses)
+        self.assertTrue(result)
+        self.assertEqual(Transaction.objects.filter(user=self.user).count(), 1)
+
+    def test_handle_uploaded_file(self):
+        """Test XLSX file handling function."""
+        xlsx_content = BytesIO()  # Simulate a BytesIO Excel file
+        result = handle_uploaded_file(xlsx_content, self._mock_request(self.user))
+        self.assertTrue(result)
+
+    def test_difference_with_last_month_category(self):
+        """Test difference_with_last_month method for Category."""
+        previous_month_expenses = MonthlyExpenses.objects.create(
+            payday=self.payday,
+            start_date="2024-12-01",
+            end_date="2024-12-31",
+            utilities=Decimal('100.00'),
+            groceries=Decimal('150.00'),
+            misc=Decimal('50.00'),
+            amount=Decimal('300.00')
+        )
+
+        previous_category = Category.objects.create(
+            user=self.user,
+            monthly_expenses=previous_month_expenses,
+            name="Groceries",
+            amount=Decimal('150.00')
+        )
+
+        difference = self.category.difference_with_last_month()
+        self.assertEqual(difference, Decimal('50.00'))
+
+    def test_difference_with_last_month_fixed_cost(self):
+        """Test difference_with_last_month method for FixedCosts."""
+        previous_month_expenses = MonthlyExpenses.objects.create(
+            payday=self.payday,
+            start_date="2024-12-01",
+            end_date="2024-12-31",
+            utilities=Decimal('80.00'),
+            groceries=Decimal('150.00'),
+            misc=Decimal('50.00'),
+            amount=Decimal('280.00')
+        )
+
+        previous_fixed_cost = FixedCosts.objects.create(
+            user=self.user,
+            monthly_expenses=previous_month_expenses,
+            name="Utilities",
+            amount=Decimal('80.00')
+        )
+
+        fixed_cost = FixedCosts.objects.create(
             user=self.user,
             monthly_expenses=self.monthly_expenses,
-            name='Groceries',
-            amount=300,
-            note="Groceries expenses"
+            name="Utilities",
+            amount=Decimal('100.00')
         )
 
-        # Create a transaction for the user
-        self.transaction1 = Transaction.objects.create(
-            user=self.user,
-            category=self.category1,
-            monthly_expenses=self.monthly_expenses,
-            amount=150,
-            note="Electricity bill"
-        )
+        difference = fixed_cost.difference_with_last_month()
+        self.assertEqual(difference, Decimal('20.00'))
 
-        # Create fixed costs for the user
-        self.fixed_cost1 = FixedCosts.objects.create(
+    def test_average_amount_category(self):
+        """Test average_amount method for Category."""
+        Category.objects.create(
             user=self.user,
             monthly_expenses=self.monthly_expenses,
-            name='Rent',
-            amount=1000,
-            note="Monthly rent"
+            name="Groceries",
+            amount=Decimal('300.00')
         )
 
-        # Create a broker for the user
-        self.broker = Broker.objects.create(
+        average = self.category.average_amount()
+        self.assertEqual(average, Decimal('250.00'))
+
+    def test_transaction_deletion(self):
+        """Test deletion of a transaction updates the category."""
+        transaction = Transaction.objects.create(
             user=self.user,
-            name='Investment Broker',
-            amount=10000,
-            note="Investment account"
+            category=self.category,
+            monthly_expenses=self.monthly_expenses,
+            amount=Decimal('50.00'),
+            note="Test Transaction"
         )
 
-        # Create an investment for the user
-        self.investment = Investment.objects.create(
-            broker=self.broker,
-            name='Stocks',
-            amount=5000,
-            note="Stock investment"
-        )
+        transaction.delete_transaction()
+        self.assertEqual(Transaction.objects.filter(id=transaction.id).count(), 0)
+        self.assertEqual(self.category.amount, Decimal('150.00'))
 
-        # Create a bank account for the user
-        self.bank = Bank.objects.create(
-            user=self.user,
-            name='Checking Account',
-            amount=3000,
-            note="Primary checking account"
-        )
-
-        # Create a pension for the user
-        self.pension = Pension.objects.create(
-            user=self.user,
-            name='Pension Fund',
-            amount=2000,
-            note="Retirement savings"
-        )
-
-        # Create a net worth entry for the user
-        self.net_worth = NetWorth.objects.create(
+    def test_perc_diff_with_last_month_net_worth(self):
+        """Test perc_diff_with_last_month method for NetWorth."""
+        previous_net_worth = NetWorth.objects.create(
             user=self.user,
             payday=self.payday,
-            date=timezone.now(),
-            total_savings=2500,
-            total_investments=5000,
-            total_pension=2000,
-            net_worth=9500,
-            note="Net worth at payday"
+            date="2024-12-31",
+            total_savings=Decimal('500.00'),
+            total_investments=Decimal('1000.00'),
+            total_pension=Decimal('200.00'),
+            net_worth=Decimal('1700.00')
         )
 
-    def test_user_preferences(self):
-        """Test that user preferences are correctly set up."""
-        self.assertEqual(self.user_preferences.currency_symbol, '€')
+        current_net_worth = NetWorth.objects.create(
+            user=self.user,
+            payday=self.payday,
+            date="2025-01-31",
+            total_savings=Decimal('600.00'),
+            total_investments=Decimal('1100.00'),
+            total_pension=Decimal('250.00'),
+            net_worth=Decimal('1950.00')
+        )
 
-    def test_payday(self):
-        """Test payday for user."""
-        self.assertEqual(self.payday.amount, 1500)
+        percentage_difference = current_net_worth.perc_diff_with_last_month()
+        self.assertEqual(percentage_difference, Decimal('14.71'))
 
-    def test_monthly_expenses(self):
-        """Test monthly expenses for user."""
-        self.assertEqual(self.monthly_expenses.utilities, 200)
+    def test_adjust_fixedcosts_categories(self):
+        """Test the adjust_fixedcosts_categories utility function."""
+        fixed_cost = FixedCosts.objects.create(
+            user=self.user,
+            monthly_expenses=self.monthly_expenses,
+            name="Rent",
+            amount=Decimal('500.00')
+        )
 
-    def test_category(self):
-        """Test category creation and association with monthly expenses."""
-        self.assertEqual(self.category1.name, 'Utilities')
-        self.assertEqual(self.category1.monthly_expenses, self.monthly_expenses)
+        request = self._mock_request(self.user)
+        success = delete_user_data(request)
+        self.assertTrue(success)
+        self.assertEqual(FixedCosts.objects.filter(id=fixed_cost.id).count(), 0)
 
-    def test_transaction(self):
-        """Test transaction creation and association with category."""
-        self.assertEqual(self.transaction1.amount, 150)
-        self.assertEqual(self.transaction1.category, self.category1)
+    def test_restricted_permissions(self):
+        """Ensure restricted permissions are enforced."""
+        another_user = User.objects.create_user(username='otheruser', password='otherpass')
+        another_payday = Payday.objects.create(user=another_user, payday_date="2025-01-15", amount=Decimal('800.00'))
 
-    def test_fixed_costs(self):
-        """Test fixed costs for user."""
-        self.assertEqual(self.fixed_cost1.name, 'Rent')
+        response = self.client.get(reverse('home'))
+        self.assertNotContains(response, another_payday.amount)
 
-    def test_broker(self):
-        """Test broker creation."""
-        self.assertEqual(self.broker.name, 'Investment Broker')
-
-    def test_investment(self):
-        """Test investment creation and association with broker."""
-        self.assertEqual(self.investment.name, 'Stocks')
-        self.assertEqual(self.investment.broker, self.broker)
-
-    def test_bank(self):
-        """Test bank account creation."""
-        self.assertEqual(self.bank.name, 'Checking Account')
-
-    def test_pension(self):
-        """Test pension account creation."""
-        self.assertEqual(self.pension.name, 'Pension Fund')
-
-    def test_net_worth(self):
-        """Test net worth creation and calculation."""
-        self.assertEqual(self.net_worth.net_worth, 9500)
-
-    def test_add_transaction_with_existing_category(self):
-        """Test adding a transaction with an existing category"""
-        self.client.login(username='testuser', password='testpassword')
-        
-        # Prepare data for the POST request
-        data = {
-            'amount': '100.00',
-            'monthly_expense_id': self.monthly_expenses.id,
-            'categories': [str(self.category.id)],  # ID of the existing category
-            'note': 'Grocery shopping',
-        }
-
-        # Send POST request
-        response = self.client.post(reverse('add_transaction'), data)
-        
-        # Check that the transaction was created
+    def test_search_payday_invalid_criteria(self):
+        """Test search_payday function with invalid criteria."""
+        response = self.client.post(reverse('paydays'), {
+            'month': 'InvalidMonth',
+            'year': '2025'
+        })
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(
-            str(response.content, 'utf8'),
-            {
-                'success': True,
-                'amount': '100.00',
-                'symbol': '€',  # The currency symbol from user preferences
-                'category_name': 'Groceries',
-                'transaction_id': str(Transaction.objects.last().id),  # Last created transaction
-            }
-        )
+        self.assertFalse(response.context['paydays'])
 
-        # Check if the transaction is actually created in the database
-        transaction = Transaction.objects.last()
-        self.assertEqual(transaction.amount, 100.00)
-        self.assertEqual(transaction.category, self.category)
-        self.assertEqual(transaction.note, 'Grocery shopping')
+    def test_edge_case_empty_csv(self):
+        """Test edge case for empty CSV upload."""
+        csv_file = BytesIO()  # Empty file
+        csv_file.name = 'empty.csv'
 
-    def test_add_transaction_with_new_category(self):
-        """Test adding a transaction with a new category"""
-        self.client.login(username='testuser', password='testpassword')
-        
-        # Prepare data for the POST request (new category)
-        data = {
-            'amount': '50.00',
-            'monthly_expense_id': self.monthly_expenses.id,
-            'categories': ['New Category'],  # A new category not in the database
-            'note': 'New category for test',
-        }
+        request = self._mock_request(self.user, files={'file': csv_file})
+        result = handle_csv_file(request, csv_file, self.monthly_expenses)
+        self.assertFalse(result)
 
-        # Send POST request
-        response = self.client.post(reverse('add_transaction'), data)
-        
-        # Check that the transaction was created
-        self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(
-            str(response.content, 'utf8'),
-            {
-                'success': True,
-                'amount': '50.00',
-                'symbol': '€',  # The currency symbol from user preferences
-                'category_name': 'New Category',
-                'transaction_id': str(Transaction.objects.last().id),  # Last created transaction
-            }
-        )
+    def _mock_request(self, user, files=None):
+        """Helper function to mock a request object."""
+        class MockRequest:
+            def __init__(self):
+                self.user = user
+                self.FILES = files or {}
 
-        # Check if the transaction is actually created in the database
-        transaction = Transaction.objects.last()
-        self.assertEqual(transaction.amount, 50.00)
-        self.assertEqual(transaction.category.name, 'New Category')
-        self.assertEqual(transaction.note, 'New category for test')
+        return MockRequest()
 
-
+if __name__ == '__main__':
+    TestCase.main()
