@@ -135,9 +135,7 @@
               {% endfor %}
             </select>
           </div>
-        </form>
-        <form method="POST" action="{% url 'home' %}">
-          {% csrf_token %}
+
           <!-- Note Input -->
           <div id="noteSelection" class="hidden">
             <input
@@ -162,33 +160,72 @@
       {% if not results %}
         <p>I didn't find any net worth for this search</p>
       {% endif %}        
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Net Worth</th>
-              <th>Savings</th>
-              <th>Investments</th>
-              <th>Pensions</th>
-              <th>Payday</th>
-            </tr>
-          </thead>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Net Worth</th>
+            <th>Savings</th>
+            <th>Investments</th>
+            <th>Pensions</th>
+            <th>Payday</th>
+            <th>Amend</th>
+          </tr>
+        </thead>
+        <tbody>
           {% for net_worth in net_worths %}
-          <tbody>
-            <!-- row 1 -->
-            <tr>
-              <td><b>{{ net_worth.payday.payday_date|date:"M-Y" }}</b></td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.net_worth|floatformat:2|intcomma }}</td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_savings|floatformat:2|intcomma }}</td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_investments|floatformat:2|intcomma }}</td>
-              <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.total_pension|floatformat:2|intcomma }}</td>
-              <td>
-                <a  href="{% url 'monthly_expenses' net_worth.payday.id %}" class="btn btn-outline">{{ net_worth.payday.id }}</a>
-              </td>
-            </tr>
-          </tbody>
+          <tr id="row-{{ net_worth.id }}">
+            <td><b>{{ net_worth.payday.payday_date|date:"M-Y" }}</b></td>
+            <td>{{ user.userpreferences.currency_symbol }} {{ net_worth.net_worth|floatformat:2|intcomma }}</td>
+      
+            <!-- Savings (Becomes an input field when editing) -->
+            <td id="savings-{{ net_worth.id }}">
+              {{ user.userpreferences.currency_symbol }} 
+              <span id="savings-text-{{ net_worth.id }}">{{ net_worth.total_savings|floatformat:2|intcomma }}</span>
+              <input type="number" step="0.01" name="total_savings" id="savings-input-{{ net_worth.id }}" value="{{ net_worth.total_savings }}" class="hidden input input-bordered w-full" />
+            </td>
+      
+            <!-- Investments (Becomes an input field when editing) -->
+            <td id="investments-{{ net_worth.id }}">
+              {{ user.userpreferences.currency_symbol }} 
+              <span id="investments-text-{{ net_worth.id }}">{{ net_worth.total_investments|floatformat:2|intcomma }}</span>
+              <input type="number" step="0.01" name="total_investments" id="investments-input-{{ net_worth.id }}" value="{{ net_worth.total_investments }}" class="hidden input input-bordered w-full" />
+            </td>
+      
+            <!-- Pensions (Becomes an input field when editing) -->
+            <td id="pensions-{{ net_worth.id }}">
+              {{ user.userpreferences.currency_symbol }} 
+              <span id="pensions-text-{{ net_worth.id }}">{{ net_worth.total_pension|floatformat:2|intcomma }}</span>
+              <input type="number" step="0.01" name="total_pension" id="pensions-input-{{ net_worth.id }}" value="{{ net_worth.total_pension }}" class="hidden input input-bordered w-full" />
+            </td>
+      
+            <!-- Payday -->
+            <td>
+              <a href="{% url 'monthly_expenses' net_worth.payday.id %}" class="btn btn-outline">{{ net_worth.payday.id }}</a>
+            </td>
+      
+            <!-- Amend Button (Changes to Confirm when clicked) -->
+            <td>
+              <button type="button" class="btn btn-primary" id="edit-btn-{{ net_worth.id }}" onclick="enableEditing('{{ net_worth.id }}')">
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+      
+              <!-- Confirm Button (Initially hidden) -->
+              <form method="POST" action="{% url 'home' %}" class="hidden" id="confirm-form-{{ net_worth.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="net_worth_id" value="{{ net_worth.id }}" />
+                <input type="hidden" name="total_savings" id="confirm-savings-{{ net_worth.id }}" />
+                <input type="hidden" name="total_investments" id="confirm-investments-{{ net_worth.id }}" />
+                <input type="hidden" name="total_pension" id="confirm-pensions-{{ net_worth.id }}" />
+                <button type="button" class="btn btn-success confirm-btn" onclick="confirmChanges('{{ net_worth.id }}')">
+                  <i class="fas fa-check"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
           {% endfor %}
-        </table>
+        </tbody>
+      </table>      
       </div>
     </div>
 
@@ -253,6 +290,62 @@
     searchButton.classList.add('hidden'); // Hide button if no selection
   }
 }
+
+function enableEditing(netWorthId) {
+  netWorthId = parseInt(netWorthId);  // Ensure it's a number
+    console.log("Editing NetWorth ID:", netWorthId);  // Debugging
+
+    if (!netWorthId) {
+        console.error("Invalid NetWorth ID");
+        return;
+    }
+
+  // Hide text spans and show input fields
+  document.getElementById(`savings-text-${netWorthId}`).classList.add("hidden");
+  document.getElementById(`savings-input-${netWorthId}`).classList.remove("hidden");
+
+  document.getElementById(`investments-text-${netWorthId}`).classList.add("hidden");
+  document.getElementById(`investments-input-${netWorthId}`).classList.remove("hidden");
+
+  document.getElementById(`pensions-text-${netWorthId}`).classList.add("hidden");
+  document.getElementById(`pensions-input-${netWorthId}`).classList.remove("hidden");
+
+  // Hide the "Amend" button
+  document.getElementById(`edit-btn-${netWorthId}`).classList.add("hidden");
+
+  // Show the "Confirm" button (form)
+  document.getElementById(`confirm-form-${netWorthId}`).classList.remove("hidden");
+}
+
+function confirmChanges(netWorthId) {
+    netWorthId = parseInt(netWorthId);
+
+    // Get the input values from visible input fields
+    let savingsInput = document.getElementById(`savings-input-${netWorthId}`);
+    let investmentsInput = document.getElementById(`investments-input-${netWorthId}`);
+    let pensionsInput = document.getElementById(`pensions-input-${netWorthId}`);
+
+    let savingsValue = savingsInput ? savingsInput.value : "";
+    let investmentsValue = investmentsInput ? investmentsInput.value : "";
+    let pensionsValue = pensionsInput ? pensionsInput.value : "";
+
+    // Debugging: Check values before setting hidden fields
+    console.log(`Before setting hidden fields: savings=${savingsValue}, investments=${investmentsValue}, pensions=${pensionsValue}`);
+
+    // Set values to hidden fields
+    document.getElementById(`confirm-savings-${netWorthId}`).value = savingsValue || "0";
+    document.getElementById(`confirm-investments-${netWorthId}`).value = investmentsValue || "0";
+    document.getElementById(`confirm-pensions-${netWorthId}`).value = pensionsValue || "0";
+
+    // Debugging: Check hidden field values before submitting
+    console.log(`After setting hidden fields: savings=${document.getElementById(`confirm-savings-${netWorthId}`).value}, investments=${document.getElementById(`confirm-investments-${netWorthId}`).value}, pensions=${document.getElementById(`confirm-pensions-${netWorthId}`).value}`);
+
+    // Submit the form
+    document.getElementById(`confirm-form-${netWorthId}`).submit();
+}
+
+
 </script>
+
 {% endblock %}
 {% endblock %}
