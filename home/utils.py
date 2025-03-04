@@ -472,102 +472,78 @@ def update_monthly_expenses(request, monthly_expenses, payday):
         return False
 
 def search_payday(request, search_type, *args):
+    user = request.user  # Get the logged-in user
+
     if search_type == 'note':
         note = args[0].strip()  # The note content to search for
-
-        # Use a set to ensure unique Payday objects
         result_set = set()
 
-        # Search in Payday notes
-        paydays = Payday.objects.filter(note__icontains=note)
+        # Filter by user in all queries
+        paydays = Payday.objects.filter(user=user, note__icontains=note)
         result_set.update(paydays)
 
-        # Search in NetWorth notes and add related Paydays
-        net_worths = NetWorth.objects.filter(note__icontains=note)
+        net_worths = NetWorth.objects.filter(user=user, note__icontains=note)
         for net_worth in net_worths:
             if net_worth.payday:
                 result_set.add(net_worth.payday)
 
-        # Search in MonthlyExpenses notes and add related Paydays
-        monthly_expenses = MonthlyExpenses.objects.filter(note__icontains=note)
+        monthly_expenses = MonthlyExpenses.objects.filter(payday__user=user, note__icontains=note)
         for expense in monthly_expenses:
             if expense.payday:
                 result_set.add(expense.payday)
 
-        # Convert the set to a list and return it
         return list(result_set)
 
     elif search_type == 'date':
-        # Search by month and year
-        month_str = args[0]  # The first argument is the month (string, e.g. 'January')
-        year_str = args[1]  # The second argument is the year (string, e.g. '2025')
-
-        # Convert month string to a number (e.g. 'January' -> 1)
         try:
-            month_number = datetime.strptime(month_str, "%B").month  # %B for full month name (e.g. 'January')
+            month_number = datetime.strptime(args[0], "%B").month
+            year = int(args[1])
         except ValueError:
-            # In case the month is invalid or not recognized
             return None
 
-        # Convert year_str to an integer
-        try:
-            year = int(year_str)
-        except ValueError:
-            # If the year is invalid
-            return None
-
-        # Filter paydays based on the converted month and year
         paydays = Payday.objects.filter(
-            payday_date__month=month_number,  # Month as integer
-            payday_date__year=year  # Year as integer
+            user=user,
+            payday_date__month=month_number,
+            payday_date__year=year
         )
         return paydays
 
-    else:
-        return None  # Return None if no valid search type is provided
+    return None
     
 def search_net_worth(request, search_type, *args):
+    user = request.user  # Get the logged-in user
+
     if search_type == 'note':
-        note = args[0].strip()  # The note content to search for
+        note = args[0].strip()
 
-        # Search in NetWorth notes
-        net_worths_qs = NetWorth.objects.filter(note__icontains=note)
+        net_worths_qs = NetWorth.objects.filter(user=user, note__icontains=note)
+        paydays_qs = Payday.objects.filter(user=user, note__icontains=note)
+        net_worths_from_paydays_qs = NetWorth.objects.filter(user=user, payday__in=paydays_qs)
 
-        # Search in Payday notes and add related NetWorths
-        paydays_qs = Payday.objects.filter(note__icontains=note)
-        net_worths_from_paydays_qs = NetWorth.objects.filter(payday__in=paydays_qs)
-
-        # Search in MonthlyExpenses notes and add related NetWorths
-        monthly_expenses_qs = MonthlyExpenses.objects.filter(note__icontains=note)
+        monthly_expenses_qs = MonthlyExpenses.objects.filter(payday__user=user, note__icontains=note)
         net_worths_from_expenses_qs = NetWorth.objects.filter(
-            payday__in=monthly_expenses_qs.values_list('payday', flat=True)
+            user=user, payday__in=monthly_expenses_qs.values_list('payday', flat=True)
         )
 
-        # Combine all QuerySets using union()
         all_net_worths = net_worths_qs.union(net_worths_from_paydays_qs, net_worths_from_expenses_qs)
-
-        # Return the combined QuerySet
         return all_net_worths
 
     elif search_type == 'date':
-        # Search by month and year
-        month_number = args[0]  # The first argument is the month (string, e.g. 'January')
-        year_str = args[1]  # The second argument is the year (string, e.g. '2025')
-        # Convert year_str to an integer
         try:
-            year = int(year_str)
+            month_number = int(args[0])  # Already expected as integer
+            year = int(args[1])
         except ValueError:
-            # If the year is invalid
             return False
-        # Filter paydays based on the converted month and year
+
         net_worths = NetWorth.objects.filter(
-            date__month=month_number,  # Month as integer
-            date__year=year  # Year as integer
+            user=user,
+            date__month=month_number,
+            date__year=year
         )
         return net_worths
 
-    else:
-        return False  # Return False if no valid search type is provided
+    return False
+
 
 def check_user_investment(request, investment_id): # Check if an investment is related to the current user
         user_brokers = Broker.objects.filter(user=request.user)
@@ -577,17 +553,23 @@ def check_user_investment(request, investment_id): # Check if an investment is r
         return None
 
 def from_to_net_worths(request, from_month, from_year, to_month, to_year):
+    user = request.user  # Get the logged-in user
+
     # Construct start and end datetime objects
     start_date = datetime(year=int(from_year), month=int(from_month), day=1)
     end_date = datetime(year=int(to_year), month=int(to_month), day=1)
 
     # Adjust end_date to include the entire "To" month
-    if end_date.month == 12:  # If it's December, move to January next year
+    if end_date.month == 12:
         end_date = datetime(year=end_date.year + 1, month=1, day=1)
-    else:  # Move to the first day of the next month
+    else:
         end_date = datetime(year=end_date.year, month=end_date.month + 1, day=1)
 
-    # Fetch all NetWorth objects within the time frame
-    net_worth_objects = NetWorth.objects.filter(date__gte=start_date, date__lt=end_date)
+    # Fetch only the NetWorth objects that belong to the logged-in user
+    net_worth_objects = NetWorth.objects.filter(
+        user=user,  # Filters by logged-in user
+        date__gte=start_date,
+        date__lt=end_date
+    )
 
     return net_worth_objects
