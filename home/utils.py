@@ -45,7 +45,7 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                 # Use preferences if available, otherwise set to 'Purchase' so that it triggers next if condition
                 transaction_type = row[preferences.transaction_type] if preferences and preferences.transaction_type else 'Purchase'
 
-            if transaction_type == 'Purchase':
+            if 'Purchase' in transaction_type:
                 date = row[preferences.date] if preferences and preferences.date else row.get('Date')
                 time = row[preferences.time] if preferences and preferences.time else row.get('Time')
                 
