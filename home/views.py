@@ -340,9 +340,25 @@ def home(request):
         }
 
         if request.method == 'POST': # Search button pressed
+            net_worth_id = request.POST.get("net_worth_id")
+            total_savings = request.POST.get("total_savings")
+            total_investments = request.POST.get("total_investments")
+            total_pension = request.POST.get("total_pension")
             month = request.POST.get('month')  # Month from dropdown
             year = request.POST.get('year')  # Year from dropdown
             note = request.POST.get('note')  # Note text input
+
+            if net_worth_id:
+                try:
+                    net_worth = NetWorth.objects.get(id=net_worth_id, user=request.user)
+                    net_worth.total_savings = float(total_savings) if total_savings else net_worth.total_savings
+                    net_worth.total_investments = float(total_investments) if total_investments else net_worth.total_investments
+                    net_worth.total_pension = float(total_pension) if total_pension else net_worth.total_pension
+                    net_worth.net_worth = net_worth.total_investments + net_worth.total_pension + net_worth.total_savings
+                    net_worth.save()
+                except NetWorth.DoesNotExist:
+                    pass  
+
             if note:
                 search_type = 'note'
                 search_result = search_net_worth(request, search_type, note)
@@ -350,7 +366,7 @@ def home(request):
                     net_worths = search_result
                 else:
                     results = False
-            else:
+            if month:
                 search_type = 'date'
                 search_result = search_net_worth(request, search_type, month, year) 
                 if search_result:
