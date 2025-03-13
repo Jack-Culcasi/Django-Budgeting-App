@@ -414,8 +414,6 @@ def payday(request):
         last_two_paydays = None
     
     if request.method == 'POST':
-        print(last_two_paydays)
-        print(not last_two_paydays)
         # Get the form data
         amount = Decimal(request.POST.get('amount'))
         payday_date = request.POST.get('date')
@@ -476,10 +474,22 @@ def expenses(request, payday_id=None, monthly_expense_id=None):
         form = CSVUploadForm(request.POST, request.FILES)
         if form.is_valid():
             csv_file = request.FILES['file']
-            if handle_csv_file(request, csv_file, monthly_expenses):
-                return redirect('transactions', payday_id, monthly_expense_id)
-            else:
-                messages.error(request, "There's been a problem with the upload")
+
+            try:
+                success = handle_csv_file(request, csv_file, monthly_expenses)
+                if success:
+                    return redirect('transactions', payday_id, monthly_expense_id)
+                else:
+                    messages.error(request, "CSV file format is incorrect. Please check your data.")
+            
+            except FileNotFoundError:
+                messages.error(request, "The uploaded file was not found. Please try again.")
+
+            except ValueError as e:
+                messages.error(request, f"Data error: {str(e)}")
+
+            except Exception as e:
+                messages.error(request, f"Unexpected error: {str(e)}")
 
     else:
         form = CSVUploadForm()
