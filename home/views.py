@@ -428,15 +428,13 @@ def payday(request):
             note=note
         )
         # If first time payday the start_date is taken from the form, otherwise from last_two_paydays[1]
-        if not last_two_paydays:
-            print('not last_two_paydays')
+        if not last_two_paydays or len(last_two_paydays) < 2:
             monthly_expense = MonthlyExpenses.objects.create(
             payday=payday,
             start_date=start_date,
             end_date=payday_date - timedelta(days=1)
             )
         else:
-            print('else')
             last_two_paydays = Payday.objects.filter(user=request.user).order_by('-payday_date')[:2]
             # Create the MonthlyExpenses object for the previous month, 
             # the start date is related to the payday date of the previous month, the end date is the last payday date minus one day.
