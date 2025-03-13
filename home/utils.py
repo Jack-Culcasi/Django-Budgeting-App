@@ -29,8 +29,21 @@ def delete_user_data(request):
         print(f"An error occurred: {e}")
         return False
 
+def detect_delimiter(csv_file):
+    """
+    Reads a few lines of the CSV file and detects whether it uses ',' or '\t' as a delimiter.
+    """
+    sample = csv_file.file.read(1024).decode("utf-8")  # Read a small part of the file
+    csv_file.file.seek(0)  # Reset file pointer after reading
+
+    if "\t" in sample and "," not in sample:
+        return "\t"  # File uses tabs
+    else:
+        return ","  # Default to commas
+
 def handle_csv_file(request, csv_file, monthly_expenses):
-    csv_reader = csv.DictReader(TextIOWrapper(csv_file.file, encoding='utf-8'), delimiter="\t")
+    delimiter = detect_delimiter(csv_file)  # Auto-detect delimiter
+    csv_reader = csv.DictReader(TextIOWrapper(csv_file.file, encoding='utf-8'), delimiter=delimiter)
     try:
         # Fetch all rules for the current user
         rules = Rule.objects.filter(user=request.user)
@@ -72,7 +85,8 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                             matched_category = rule.category
                         elif rule.fixed_cost:
                             matched_fixed_cost = rule.fixed_cost
-                            # Check if a fixed cost with the same name exists already
+
+                            # Check if a Fixed Cost with the same name already exists
                             existing_fixed_cost = FixedCosts.objects.filter(
                                 user=request.user,
                                 monthly_expenses=monthly_expenses,
@@ -80,32 +94,30 @@ def handle_csv_file(request, csv_file, monthly_expenses):
                             ).first()
 
                             if existing_fixed_cost:
-                                # If exists, update the amount by adding the current transaction's amount
+                                # If it exists, update the Fixed Cost but do NOT add to Monthly Expenses again
                                 existing_fixed_cost.amount += abs(amount)
-                                # In order to avoid counting the transaction twice (as fixed cost and as transaction), subtract the fixed_cost amount to the ME amount
-                                monthly_expenses.amount = -amount
-                                monthly_expenses.save()
                                 existing_fixed_cost.save()
                             else:
-                                # If not, create a new fixed cost
-                                new_fixed_cost = FixedCosts.objects.create(
+                                # If it doesn't exist, create a new Fixed Cost
+                                FixedCosts.objects.create(
                                     user=request.user,
                                     monthly_expenses=monthly_expenses,
                                     name=matched_fixed_cost.name,
-                                    amount=abs(amount)                
+                                    amount=abs(amount)
                                 )
-                                monthly_expenses.amount = -amount
-                                monthly_expenses.save()
-                        break  # Stop checking once a match is found
 
-                # Create the transaction and associate it with the matched rule
-                new_transaction = Transaction.objects.create(
-                    user=request.user,
-                    monthly_expenses=monthly_expenses,
-                    amount=abs(amount),
-                    note=combined_note,
-                    category=matched_category  # Associate with the matched category
-                )
+                            # Since this transaction is already counted as a Fixed Cost, we SKIP creating it separately
+                            break  # Stop checking once a match is found
+
+                else:  
+                    # Only create a transaction if it was NOT marked as a Fixed Cost
+                    Transaction.objects.create(
+                        user=request.user,
+                        monthly_expenses=monthly_expenses,
+                        amount=abs(amount),
+                        note=combined_note,
+                        category=matched_category
+                    )
 
         return True
 
