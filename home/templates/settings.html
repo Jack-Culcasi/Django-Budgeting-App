@@ -62,7 +62,13 @@
               {% for rule in rules %}
               <tbody>
                 <tr>
-                  <td></td>
+                  <td>
+                    {% if rule.category %}
+                        Category
+                    {% elif rule.fixed_cost %}
+                        Fixed Cost
+                    {% endif %}
+                  </td>
                   <td>{{ rule.note }}</td>
                   <td>
                     {% if rule.category %}
