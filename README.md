@@ -2,6 +2,8 @@
 
 A detailed and user-friendly budgeting application built with Django, designed to help users track their finances efficiently. This README provides an overview of the app's functionalities, structured by the main pages available in the web app.
 
+The website is avaliable at [this link](https://brokenomics.eu.pythonanywhere.com/login/?next=/home/), here there's a [demo video](assets/brokenomics_demo.mp4).
+
 ---
 
 ## **Features**
